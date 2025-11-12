@@ -13,7 +13,7 @@ export default function SearchPage() {
 
   useEffect(() => {
     if (query) search()
-  }, [query])
+  }, [query, search])
 
   const search = async () => {
     try {

@@ -214,7 +214,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // 使用useMemo优化value对象，避免不必要的重渲染
   const value = useMemo(
     () => ({ user, userRole, loading, signIn, signUp, signOut, refreshUserRole, setUserRoleManually, setManualLoginMode }),
-    [user, userRole, loading]
+    [user, userRole, loading, refreshUserRole]
   )
 
   console.log('[AuthContext] Provider value更新:', {

@@ -35,7 +35,7 @@ export default function CheckoutPage() {
       return
     }
     loadData()
-  }, [user])
+  }, [user, loadData, navigate])
 
   const loadData = async () => {
     if (!user) return
@@ -54,10 +54,16 @@ export default function CheckoutPage() {
           .select('*')
           .in('id', productIds)
 
-        const itemsWithProducts = cart.map(item => ({
-          ...item,
-          product: products?.find(p => p.id === item.product_id)!
-        }))
+        const itemsWithProducts = cart.map(item => {
+          const product = products?.find(p => p.id === item.product_id)
+          if (!product) {
+            throw new Error(`Product with ID ${item.product_id} not found`)
+          }
+          return {
+            ...item,
+            product
+          }
+        })
         setCartItems(itemsWithProducts)
       }
 

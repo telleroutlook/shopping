@@ -23,7 +23,7 @@ export default function CartPage() {
       return
     }
     loadCart()
-  }, [user])
+  }, [user, loadCart, navigate])
 
   const loadCart = async () => {
     if (!user) return
@@ -44,10 +44,16 @@ export default function CartPage() {
           .select('*')
           .in('id', productIds)
 
-        const itemsWithProducts = data.map(item => ({
-          ...item,
-          product: products?.find(p => p.id === item.product_id)!
-        }))
+        const itemsWithProducts = data.map(item => {
+          const product = products?.find(p => p.id === item.product_id)
+          if (!product) {
+            throw new Error(`Product with ID ${item.product_id} not found`)
+          }
+          return {
+            ...item,
+            product
+          }
+        })
 
         setCartItems(itemsWithProducts)
       }

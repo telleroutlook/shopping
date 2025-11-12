@@ -45,7 +45,7 @@ export default function AccountPage() {
       return
     }
     loadData()
-  }, [user, activeTab])
+  }, [user, activeTab, loadData, navigate])
 
   const loadData = async () => {
     if (!user) return

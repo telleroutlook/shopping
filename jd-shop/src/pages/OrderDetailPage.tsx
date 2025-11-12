@@ -31,7 +31,7 @@ export default function OrderDetailPage() {
       }
       loadOrder()
     }
-  }, [id, user, searchParams])
+  }, [id, user, searchParams, loadOrder, navigate])
 
   const loadOrder = async () => {
     if (!user) return

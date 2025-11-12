@@ -19,7 +19,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (id) loadProduct()
-  }, [id])
+  }, [id, loadProduct])
 
   const loadProduct = async () => {
     try {

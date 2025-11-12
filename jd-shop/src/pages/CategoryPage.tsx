@@ -13,7 +13,7 @@ export default function CategoryPage() {
 
   useEffect(() => {
     if (id) loadData()
-  }, [id])
+  }, [id, loadData])
 
   const loadData = async () => {
     try {

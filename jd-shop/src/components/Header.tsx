@@ -37,7 +37,7 @@ export default function Header() {
     } else {
       setCartCount(0)
     }
-  }, [user])
+  }, [user, loadCartCount])
 
   const loadCartCount = async () => {
     if (!user) return
