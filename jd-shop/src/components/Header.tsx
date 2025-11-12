@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Search, ShoppingCart, User, Shield, Users } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRole } from '@/hooks/usePermission'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase, CartItem } from '@/lib/supabase'
 import { cartEvents } from '@/lib/events'
 
@@ -21,6 +21,19 @@ export default function Header() {
     console.log('[Header] isSuperAdmin:', isSuperAdmin)
   }, [user, userRole, isAdminOrHigher, isSuperAdmin])
 
+  const loadCartCount = useCallback(async () => {
+    if (!user) return
+    const { data, error } = await supabase
+      .from('cart_items')
+      .select('quantity')
+      .eq('user_id', user.id)
+    
+    if (!error && data) {
+      const total = data.reduce((sum, item) => sum + item.quantity, 0)
+      setCartCount(total)
+    }
+  }, [user])
+
   useEffect(() => {
     if (user) {
       loadCartCount()
@@ -38,19 +51,6 @@ export default function Header() {
       setCartCount(0)
     }
   }, [user, loadCartCount])
-
-  const loadCartCount = async () => {
-    if (!user) return
-    const { data, error } = await supabase
-      .from('cart_items')
-      .select('quantity')
-      .eq('user_id', user.id)
-    
-    if (!error && data) {
-      const total = data.reduce((sum, item) => sum + item.quantity, 0)
-      setCartCount(total)
-    }
-  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

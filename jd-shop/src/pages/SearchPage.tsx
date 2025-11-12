@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import Header from '@/components/Header'
@@ -11,11 +11,7 @@ export default function SearchPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (query) search()
-  }, [query, search])
-
-  const search = async () => {
+  const search = useCallback(async () => {
     try {
       const { data } = await supabase
         .from('products')
@@ -29,7 +25,11 @@ export default function SearchPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [query])
+
+  useEffect(() => {
+    if (query) search()
+  }, [query, search])
 
   const renderStars = (rating: number) => {
     return (

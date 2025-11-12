@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Star } from 'lucide-react'
 import Header from '@/components/Header'
@@ -11,11 +11,7 @@ export default function CategoryPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (id) loadData()
-  }, [id, loadData])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const { data: categoryData } = await supabase
         .from('categories')
@@ -37,7 +33,11 @@ export default function CategoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (id) loadData()
+  }, [id, loadData])
 
   const renderStars = (rating: number) => {
     return (

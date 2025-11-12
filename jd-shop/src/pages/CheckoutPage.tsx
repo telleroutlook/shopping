@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Smartphone, Wallet, Lock, AlertCircle } from 'lucide-react'
 import Header from '@/components/Header'
@@ -29,15 +29,7 @@ export default function CheckoutPage() {
   const [expiryDate, setExpiryDate] = useState('')
   const [cvv, setCvv] = useState('')
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-    loadData()
-  }, [user, loadData, navigate])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return
 
     try {
@@ -83,7 +75,15 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    loadData()
+  }, [user, loadData, navigate])
 
   const totalAmount = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,

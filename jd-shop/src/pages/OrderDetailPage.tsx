@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import Header from '@/components/Header'
@@ -16,24 +16,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-    if (id) {
-      // 检查是否是支付成功后跳转
-      const paymentStatus = searchParams.get('payment')
-      if (paymentStatus === 'success') {
-        setShowSuccessMessage(true)
-        // 5秒后隐藏成功消息
-        setTimeout(() => setShowSuccessMessage(false), 5000)
-      }
-      loadOrder()
-    }
-  }, [id, user, searchParams, loadOrder, navigate])
-
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!user) return
 
     try {
@@ -92,7 +75,24 @@ export default function OrderDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, id, searchParams, navigate])
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    if (id) {
+      // 检查是否是支付成功后跳转
+      const paymentStatus = searchParams.get('payment')
+      if (paymentStatus === 'success') {
+        setShowSuccessMessage(true)
+        // 5秒后隐藏成功消息
+        setTimeout(() => setShowSuccessMessage(false), 5000)
+      }
+      loadOrder()
+    }
+  }, [id, user, searchParams, loadOrder, navigate])
 
   const getStatusText = (status: string) => {
     const statusMap: { [key: string]: string } = {

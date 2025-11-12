@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Star, ShoppingCart, Heart, Check } from 'lucide-react'
 import Header from '@/components/Header'
@@ -17,11 +17,7 @@ export default function ProductPage() {
   const [adding, setAdding] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
 
-  useEffect(() => {
-    if (id) loadProduct()
-  }, [id, loadProduct])
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -36,7 +32,11 @@ export default function ProductPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (id) loadProduct()
+  }, [id, loadProduct])
 
   const handleAddToCart = async () => {
     if (!user) {

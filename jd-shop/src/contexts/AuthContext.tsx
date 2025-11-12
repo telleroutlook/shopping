@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, useRef } from 'react'
+import React, { createContext, useContext, useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import type { UserRole } from '@/lib/supabase'
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserRole(roleData)
   }
 
-  const loadUserRole = async (currentUser: User) => {
+  const loadUserRole = useCallback(async (currentUser: User) => {
     console.log('[AuthContext] loadUserRole被调用，开始加载角色信息')
     console.log('[AuthContext] 用户邮箱:', currentUser.email)
     
@@ -86,14 +86,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const refreshUserRole = async () => {
+  const refreshUserRole = useCallback(async () => {
     if (user) {
       setLoading(true)
       await loadUserRole(user)
     }
-  }
+  }, [user, loadUserRole])
 
   useEffect(() => {
     // 加载用户
@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [loadUserRole])
 
   const signIn = async (email: string, password: string) => {
     try {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
 import Header from '@/components/Header'
@@ -17,15 +17,7 @@ export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItemWithProduct[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-    loadCart()
-  }, [user, loadCart, navigate])
-
-  const loadCart = async () => {
+  const loadCart = useCallback(async () => {
     if (!user) return
 
     try {
@@ -62,7 +54,15 @@ export default function CartPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    loadCart()
+  }, [user, loadCart, navigate])
 
   const updateQuantity = async (itemId: number, newQuantity: number) => {
     if (newQuantity < 1) return

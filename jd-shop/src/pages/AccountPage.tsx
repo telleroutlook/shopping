@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, Package, Heart, MapPin, Settings, Plus, Edit2, Trash2, Check, Key } from 'lucide-react'
 import Header from '@/components/Header'
@@ -39,15 +39,7 @@ export default function AccountPage() {
     is_default: false
   })
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
-    loadData()
-  }, [user, activeTab, loadData, navigate])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return
     setLoading(true)
     
@@ -73,7 +65,15 @@ export default function AccountPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, activeTab])
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    loadData()
+  }, [user, activeTab, loadData, navigate])
 
   const handleSignOut = async () => {
     await signOut()
