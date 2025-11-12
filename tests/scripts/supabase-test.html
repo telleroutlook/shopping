@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Test</title>
+</head>
+<body>
+    <h3>Supabase 测试结果</h3>
+    <div id="results"></div>
+
+    <script>
+        async function runTest() {
+            const resultsDiv = document.getElementById('results');
+            const logs = [];
+            
+            function log(message) {
+                console.log(message);
+                logs.push(message);
+                resultsDiv.innerHTML = logs.map(log => `<p>${log}</p>`).join('');
+            }
+            
+            try {
+                log('=== Supabase测试开始 ===');
+                log('window.supabase存在: ' + (typeof window.supabase !== 'undefined'));
+                
+                if (typeof window.supabase === 'undefined') {
+                    log('window.supabase未定义!');
+                    return;
+                }
+                
+                const { data: { user }, error: userError } = await window.supabase.auth.getUser();
+                log('当前用户: ' + JSON.stringify(user));
+                log('用户错误: ' + JSON.stringify(userError));
+                
+                if (!user) {
+                    log('用户未登录');
+                    return;
+                }
+                
+                const { data: profile, error: profileError } = await window.supabase
+                    .from('profiles').select('id, email, full_name, role_id').eq('id', user.id).single();
+                log('Profile数据: ' + JSON.stringify(profile));
+                log('Profile错误: ' + JSON.stringify(profileError));
+                
+                if (profile && profile.role_id) {
+                    const { data: role, error: roleError } = await window.supabase
+                        .from('roles').select('id, name, description').eq('id', profile.role_id).single();
+                    log('Role数据: ' + JSON.stringify(role));
+                    log('Role错误: ' + JSON.stringify(roleError));
+                }
+                
+                log('=== 测试完成 ===');
+                
+            } catch (error) {
+                log('执行错误: ' + error.message);
+            }
+        }
+        
+        // 页面加载完成后自动执行
+        window.addEventListener('load', function() {
+            setTimeout(runTest, 1000);
+        });
+        
+        // 手动执行函数
+        window.runSupabaseTest = runTest;
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test User Role</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Test User Role Edge Function</h1>
+    <button onclick="testLogin()">1. Login</button>
+    <button onclick="testUserRole()">2. Test User Role</button>
+    <pre id="output"></pre>
+    
+    <script>
+        const supabase = window.supabase.createClient(
+            'https://ojbbeonzbanvepugeoso.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qYmJlb256YmFudmVwdWdlb3NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NDE1NzUsImV4cCI6MjA3ODQxNzU3NX0.4nFRIK9DVbdsYNm4zfQVcwgRTGmO83n9Mc5KJreXo3Q'
+        );
+        
+        async function testLogin() {
+            const output = document.getElementById('output');
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: 'isexdomo@minimax.com',
+                    password: 'd74Q7MHBvU'
+                });
+                output.textContent = JSON.stringify({ data, error }, null, 2);
+            } catch (e) {
+                output.textContent = 'Error: ' + e.message;
+            }
+        }
+        
+        async function testUserRole() {
+            const output = document.getElementById('output');
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                output.textContent = 'Session: ' + JSON.stringify(session?.user?.email, null, 2) + '\n\n';
+                
+                if (!session) {
+                    output.textContent += 'No session found. Please login first.';
+                    return;
+                }
+                
+                const response = await fetch('https://ojbbeonzbanvepugeoso.supabase.co/functions/v1/user-role', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'Content-Type': 'application/json',
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qYmJlb256YmFudmVwdWdlb3NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NDE1NzUsImV4cCI6MjA3ODQxNzU3NX0.4nFRIK9DVbdsYNm4zfQVcwgRTGmO83n9Mc5KJreXo3Q'
+                    }
+                });
+                
+                const result = await response.json();
+                output.textContent += 'Response status: ' + response.status + '\n\n';
+                output.textContent += 'Response: ' + JSON.stringify(result, null, 2);
+            } catch (e) {
+                output.textContent += '\nError: ' + e.message + '\nStack: ' + e.stack;
+            }
+        }
+    </script>
+</body>
+</html>

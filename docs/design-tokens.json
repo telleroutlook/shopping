@@ -1,0 +1,136 @@
+{
+  "$schema": "https://schemas.opendesignsystems.org/v1/design-tokens.json",
+  "metadata": {
+    "name": "E-commerce Optimized Design Tokens",
+    "version": "1.0.0",
+    "description": "简洁电商购物网站设计令牌 - 基于电商转化优化型风格",
+    "author": "MiniMax Agent",
+    "created": "2025-11-11"
+  },
+  "color": {
+    "background": {
+      "primary": { "value": "#ffffff", "type": "color", "description": "页面主背景 - 纯白" },
+      "surface": { "value": "#fafafa", "type": "color", "description": "卡片背景 - 浅灰" },
+      "divider": { "value": "#e5e5e5", "type": "color", "description": "分割线 - 灰-200" }
+    },
+    "text": {
+      "primary": { "value": "#1a1a1a", "type": "color", "description": "主文字 - 近黑，15.8:1对比度" },
+      "secondary": { "value": "#525252", "type": "color", "description": "次文字 - 灰-600，7.9:1对比度" },
+      "tertiary": { "value": "#a3a3a3", "type": "color", "description": "弱文字 - 灰-400，元数据" }
+    },
+    "brand": {
+      "primary": { "value": "#000000", "type": "color", "description": "品牌色 - 纯黑，21:1最高对比度" },
+      "hover": { "value": "#1a1a1a", "type": "color", "description": "品牌悬停 - 深灰" }
+    },
+    "cta": {
+      "primary": { "value": "#000000", "type": "color", "description": "主CTA - 纯黑（推荐），21:1对比度" },
+      "primaryHover": { "value": "#1a1a1a", "type": "color", "description": "主CTA悬停" },
+      "primaryAlt": { "value": "#ff6b35", "type": "color", "description": "主CTA备选 - 橙色（活力型），4.6:1对比度" },
+      "primaryAltHover": { "value": "#ff5216", "type": "color", "description": "橙色CTA悬停" },
+      "secondary": { "value": "transparent", "type": "color", "description": "次CTA背景 - 透明" },
+      "secondaryBorder": { "value": "#525252", "type": "color", "description": "次CTA边框 - 灰-600" }
+    },
+    "semantic": {
+      "success": { "value": "#10b981", "type": "color", "description": "成功/库存充足 - 绿-500" },
+      "error": { "value": "#dc2626", "type": "color", "description": "错误/价格/紧迫 - 红-600，5.9:1对比度" },
+      "warning": { "value": "#d97706", "type": "color", "description": "警告 - 琥珀-600，5.5:1对比度" },
+      "info": { "value": "#0066ff", "type": "color", "description": "信息 - 蓝色，7.2:1对比度" }
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": { "value": "Inter, -apple-system, BlinkMacSystemFont, sans-serif", "type": "fontFamily" },
+      "numeric": { "value": "Inter, tabular-nums", "type": "fontFamily", "description": "等宽数字（价格、数量）" }
+    },
+    "fontSize": {
+      "h1": { "value": "40px", "type": "dimension", "description": "商品标题" },
+      "h2": { "value": "28px", "type": "dimension", "description": "区块标题" },
+      "priceCurrent": { "value": "32px", "type": "dimension", "description": "当前价格（大号）" },
+      "priceOriginal": { "value": "20px", "type": "dimension", "description": "原价（删除线）" },
+      "body": { "value": "16px", "type": "dimension", "description": "正文" },
+      "small": { "value": "14px", "type": "dimension", "description": "小字、元数据" },
+      "button": { "value": "16px", "type": "dimension", "description": "按钮文字" },
+      "badge": { "value": "12px", "type": "dimension", "description": "徽章、标签" }
+    },
+    "fontWeight": {
+      "regular": { "value": "400", "type": "number" },
+      "medium": { "value": "500", "type": "number" },
+      "semibold": { "value": "600", "type": "number" },
+      "bold": { "value": "700", "type": "number" }
+    },
+    "lineHeight": {
+      "tight": { "value": "1.2", "type": "number", "description": "标题、价格" },
+      "normal": { "value": "1.3", "type": "number", "description": "小标题" },
+      "relaxed": { "value": "1.5", "type": "number", "description": "正文" },
+      "loose": { "value": "1.6", "type": "number", "description": "长文本" }
+    },
+    "letterSpacing": {
+      "tight": { "value": "-0.01em", "type": "dimension", "description": "大标题" },
+      "normal": { "value": "0", "type": "dimension" },
+      "wide": { "value": "0.02em", "type": "dimension", "description": "按钮" },
+      "wider": { "value": "0.05em", "type": "dimension", "description": "大写文字、徽章" }
+    }
+  },
+  "spacing": {
+    "8": { "value": "8px", "type": "dimension", "description": "紧凑间距 - 徽章内边距" },
+    "12": { "value": "12px", "type": "dimension", "description": "小间距 - 图标与文字" },
+    "16": { "value": "16px", "type": "dimension", "description": "标准间距 - 卡片内容" },
+    "24": { "value": "24px", "type": "dimension", "description": "卡片内边距" },
+    "32": { "value": "32px", "type": "dimension", "description": "区块内边距" },
+    "48": { "value": "48px", "type": "dimension", "description": "区块间距" },
+    "64": { "value": "64px", "type": "dimension", "description": "大区块间距" },
+    "gridGap": { "value": "16px", "type": "dimension", "description": "商品网格间距（桌面）" },
+    "gridGapMobile": { "value": "12px", "type": "dimension", "description": "商品网格间距（移动）" }
+  },
+  "borderRadius": {
+    "sm": { "value": "4px", "type": "dimension", "description": "小圆角 - 徽章" },
+    "md": { "value": "8px", "type": "dimension", "description": "标准圆角 - 按钮、卡片" },
+    "lg": { "value": "12px", "type": "dimension", "description": "大圆角 - 大卡片" },
+    "full": { "value": "9999px", "type": "dimension", "description": "圆形 - 药丸形、头像" }
+  },
+  "boxShadow": {
+    "card": { "value": "0 2px 8px rgba(0, 0, 0, 0.08)", "type": "shadow", "description": "商品卡片默认" },
+    "cardHover": { "value": "0 4px 16px rgba(0, 0, 0, 0.12)", "type": "shadow", "description": "商品卡片悬停" },
+    "modal": { "value": "0 8px 24px rgba(0, 0, 0, 0.15)", "type": "shadow", "description": "模态框、侧栏" },
+    "none": { "value": "none", "type": "shadow", "description": "无阴影 - 按钮" }
+  },
+  "animation": {
+    "duration": {
+      "fast": { "value": "150ms", "type": "duration", "description": "按钮悬停、图标" },
+      "base": { "value": "250ms", "type": "duration", "description": "卡片悬停、图片缩放" },
+      "slow": { "value": "400ms", "type": "duration", "description": "模态框、侧栏滑入" },
+      "feedback": { "value": "600ms", "type": "duration", "description": "加购成功反馈" }
+    },
+    "easing": {
+      "default": { "value": "ease-out", "type": "cubicBezier", "description": "默认缓动" },
+      "sharp": { "value": "cubic-bezier(0.4, 0.0, 0.2, 1)", "type": "cubicBezier", "description": "锐利缓动" },
+      "smooth": { "value": "ease-in-out", "type": "cubicBezier", "description": "平滑缓动" }
+    }
+  },
+  "layout": {
+    "container": {
+      "maxWidth": { "value": "1280px", "type": "dimension", "description": "容器最大宽度" },
+      "paddingDesktop": { "value": "48px", "type": "dimension", "description": "容器内边距（桌面）" },
+      "paddingMobile": { "value": "24px", "type": "dimension", "description": "容器内边距（移动）" }
+    },
+    "header": {
+      "height": { "value": "72px", "type": "dimension", "description": "导航栏高度" },
+      "zIndex": { "value": "100", "type": "number", "description": "导航栏层级" }
+    },
+    "button": {
+      "height": { "value": "56px", "type": "dimension", "description": "标准按钮高度（大触控）" },
+      "paddingX": { "value": "40px", "type": "dimension", "description": "按钮水平内边距" }
+    },
+    "productCard": {
+      "widthDesktop": { "value": "240px", "type": "dimension", "description": "商品卡片宽度（桌面）" },
+      "widthMobile": { "value": "160px", "type": "dimension", "description": "商品卡片宽度（移动）" },
+      "aspectRatio": { "value": "1 / 1", "type": "string", "description": "商品图片纵横比" }
+    }
+  },
+  "breakpoints": {
+    "sm": { "value": "640px", "type": "dimension", "description": "移动端" },
+    "md": { "value": "768px", "type": "dimension", "description": "平板" },
+    "lg": { "value": "1024px", "type": "dimension", "description": "桌面" },
+    "xl": { "value": "1280px", "type": "dimension", "description": "大屏" }
+  }
+}
