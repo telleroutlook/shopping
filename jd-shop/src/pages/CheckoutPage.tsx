@@ -4,7 +4,7 @@ import { CreditCard, Smartphone, Wallet, Lock, AlertCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase, CartItem, Product, Address } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
 
 interface CartItemWithProduct extends CartItem {

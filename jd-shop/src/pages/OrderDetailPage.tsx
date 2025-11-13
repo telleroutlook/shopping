@@ -4,7 +4,7 @@ import { Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase, Order, OrderItem } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()

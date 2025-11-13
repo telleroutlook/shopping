@@ -44,6 +44,14 @@ export interface CartItem {
   product?: Product
 }
 
+export interface FavoriteItem {
+  id: number
+  user_id: string
+  product_id: number
+  created_at: string
+  product?: Product
+}
+
 export interface Order {
   id: number
   order_number: string

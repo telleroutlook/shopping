@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Search, ShoppingCart, User, Shield, Users } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 import { useRole } from '@/hooks/usePermission'
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, CartItem } from '@/lib/supabase'

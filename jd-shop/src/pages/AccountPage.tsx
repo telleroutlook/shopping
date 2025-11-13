@@ -4,13 +4,14 @@ import { LogOut, Package, Heart, MapPin, Settings, Plus, Edit2, Trash2, Check, K
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PasswordInput from '@/components/PasswordInput'
-import { supabase, Order, Address } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { supabase, Order, Address, FavoriteItem, Product } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import { userPasswordApi } from '@/lib/api'
 import { passwordChangeSchema, getValidationErrors } from '@/lib/validation'
 import { toast } from 'sonner'
 
 type TabType = 'orders' | 'addresses' | 'favorites' | 'settings'
+type FavoriteWithProduct = FavoriteItem & { product: Product }
 
 export default function AccountPage() {
   const { user, signOut } = useAuth()
@@ -18,6 +19,7 @@ export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<TabType>('orders')
   const [orders, setOrders] = useState<Order[]>([])
   const [addresses, setAddresses] = useState<Address[]>([])
+  const [favorites, setFavorites] = useState<FavoriteWithProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddressForm, setShowAddressForm] = useState(false)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
@@ -59,6 +61,45 @@ export default function AccountPage() {
           .eq('user_id', user.id)
           .order('is_default', { ascending: false })
         if (data) setAddresses(data)
+      } else if (activeTab === 'favorites') {
+        const { data, error } = await supabase
+          .from('favorites')
+          .select(`
+            id,
+            product_id,
+            user_id,
+            created_at,
+            products (
+              id,
+              name,
+              short_description,
+              price,
+              original_price,
+              brand,
+              main_image,
+              rating,
+              review_count
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          throw error
+        }
+
+        const typedData = (data || []) as unknown as (FavoriteItem & { products: Product | null })[]
+        const mapped = typedData
+          .filter((item): item is FavoriteItem & { products: Product } => !!item.products)
+          .map((item) => ({
+            id: item.id,
+            user_id: user.id,
+            product_id: item.product_id,
+            created_at: item.created_at,
+            product: item.products
+          }))
+        
+        setFavorites(mapped)
       }
     } catch (error) {
       console.error('Error loading data:', error)
@@ -142,6 +183,20 @@ export default function AccountPage() {
     } catch (error) {
       console.error('Error setting default:', error)
       alert('设置失败，请重试')
+    }
+  }
+
+  const handleRemoveFavorite = async (favoriteId: number) => {
+    try {
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('id', favoriteId)
+      setFavorites((prev) => prev.filter((item) => item.id !== favoriteId))
+      toast.success('已取消收藏')
+    } catch (error) {
+      console.error('Error removing favorite:', error)
+      toast.error('取消收藏失败，请稍后再试')
     }
   }
 
@@ -584,10 +639,72 @@ export default function AccountPage() {
               {activeTab === 'favorites' && (
                 <>
                   <h1 className="text-h2 font-semibold text-text-primary mb-6">我的收藏</h1>
-                  <div className="bg-white border border-background-divider rounded-lg p-12 text-center">
-                    <Heart className="w-16 h-16 text-text-tertiary mx-auto mb-4" />
-                    <p className="text-text-secondary">收藏功能即将上线</p>
-                  </div>
+                  {loading ? (
+                    <div className="text-center py-12">
+                      <p className="text-text-secondary">加载中...</p>
+                    </div>
+                  ) : favorites.length === 0 ? (
+                    <div className="bg-white border border-background-divider rounded-lg p-12 text-center">
+                      <Heart className="w-16 h-16 text-text-tertiary mx-auto mb-4" />
+                      <p className="text-text-secondary mb-4">还没有收藏的商品</p>
+                      <button
+                        onClick={() => navigate('/')}
+                        className="text-brand hover:underline"
+                      >
+                        去逛逛
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {favorites.map((favorite) => (
+                        <div
+                          key={favorite.id}
+                          onClick={() => navigate(`/product/${favorite.product.id}`)}
+                          className="bg-white border border-background-divider rounded-lg overflow-hidden hover:shadow-card transition-shadow cursor-pointer group"
+                        >
+                          <div className="flex">
+                            <div className="w-32 h-32 bg-background-surface flex-shrink-0">
+                              <img
+                                src={favorite.product.main_image}
+                                alt={favorite.product.name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-base"
+                              />
+                            </div>
+                            <div className="flex-1 p-4 space-y-3">
+                              <p className="text-base font-medium text-text-primary line-clamp-2">
+                                {favorite.product.name}
+                              </p>
+                              <p className="text-sm text-text-secondary line-clamp-2 min-h-[2.5rem]">
+                                {favorite.product.short_description}
+                              </p>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-lg font-semibold text-error">
+                                    ¥{favorite.product.price.toFixed(2)}
+                                  </p>
+                                  {favorite.product.original_price > favorite.product.price && (
+                                    <p className="text-xs text-text-tertiary line-through mt-0.5">
+                                      ¥{favorite.product.original_price.toFixed(2)}
+                                    </p>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    handleRemoveFavorite(favorite.id)
+                                  }}
+                                  className="flex items-center space-x-1 px-3 py-1.5 text-sm text-text-primary hover:text-error transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  <span>取消收藏</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 

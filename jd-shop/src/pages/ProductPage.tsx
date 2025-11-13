@@ -4,8 +4,10 @@ import { Star, ShoppingCart, Heart, Check } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase, Product } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
+import { useFavoriteStatus } from '@/hooks/useFavoriteStatus'
+import { toast } from 'sonner'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()
@@ -16,6 +18,12 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const {
+    isFavorite,
+    loading: favoriteLoading,
+    mutating: favoriteMutating,
+    toggleFavorite
+  } = useFavoriteStatus(product?.id)
 
   const loadProduct = useCallback(async () => {
     try {
@@ -87,6 +95,22 @@ export default function ProductPage() {
       alert('加入购物车失败，请重试')
     } finally {
       setAdding(false)
+    }
+  }
+
+  const handleToggleFavorite = async () => {
+    if (!product) return
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
+    try {
+      const nextState = await toggleFavorite()
+      toast.success(nextState ? '已加入收藏' : '已取消收藏')
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      toast.error('更新收藏状态失败，请稍后再试')
     }
   }
 
@@ -240,9 +264,15 @@ export default function ProductPage() {
                   <ShoppingCart className="w-5 h-5" />
                   <span>{adding ? '添加中...' : product.stock > 0 ? '加入购物车' : '暂无库存'}</span>
                 </button>
-                <button className="w-full h-14 border-2 border-cta-secondary-border text-text-primary font-semibold rounded-md hover:border-brand hover:text-brand transition-colors duration-fast flex items-center justify-center space-x-2">
-                  <Heart className="w-5 h-5" />
-                  <span>收藏</span>
+                <button
+                  onClick={handleToggleFavorite}
+                  disabled={favoriteLoading || favoriteMutating || !product}
+                  className="w-full h-14 border-2 border-cta-secondary-border text-text-primary font-semibold rounded-md hover:border-brand hover:text-brand transition-colors duration-fast flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <Heart
+                    className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : ''}`}
+                  />
+                  <span>{isFavorite ? '已收藏' : '收藏'}</span>
                 </button>
               </div>
 

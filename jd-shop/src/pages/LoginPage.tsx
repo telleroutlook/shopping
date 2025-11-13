@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import type { UserRole } from '@/lib/supabase'
 import Header from '@/components/Header'

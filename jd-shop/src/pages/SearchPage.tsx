@@ -8,16 +8,18 @@ import { supabase, Product } from '@/lib/supabase'
 export default function SearchPage() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
+  const normalizedQuery = query.trim()
+  const hasQuery = normalizedQuery.length > 0
   const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => hasQuery)
 
-  const search = useCallback(async () => {
+  const search = useCallback(async (keyword: string) => {
     try {
       const { data } = await supabase
         .from('products')
         .select('*')
         .eq('is_active', true)
-        .or(`name.ilike.%${query}%,description.ilike.%${query}%,brand.ilike.%${query}%`)
+        .or(`name.ilike.%${keyword}%,description.ilike.%${keyword}%,brand.ilike.%${keyword}%`)
 
       if (data) setProducts(data)
     } catch (error) {
@@ -25,11 +27,17 @@ export default function SearchPage() {
     } finally {
       setLoading(false)
     }
-  }, [query])
+  }, [])
 
   useEffect(() => {
-    if (query) search()
-  }, [query, search])
+    if (!hasQuery) {
+      setProducts([])
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    search(normalizedQuery)
+  }, [hasQuery, normalizedQuery, search])
 
   const renderStars = (rating: number) => {
     return (
@@ -61,11 +69,18 @@ export default function SearchPage() {
       <main className="flex-1 py-8">
         <div className="container mx-auto">
           <h1 className="text-h2 font-semibold text-text-primary mb-2">
-            搜索结果：{query}
+            {hasQuery ? `搜索结果：${normalizedQuery}` : '搜索商品'}
           </h1>
-          <p className="text-text-secondary mb-8">找到 {products.length} 个商品</p>
+          <p className="text-text-secondary mb-8">
+            {hasQuery ? `找到 ${products.length} 个商品` : '输入关键词即可快速定位商品'}
+          </p>
 
-          {products.length === 0 ? (
+          {!hasQuery ? (
+            <div className="text-center py-16 border border-dashed border-background-divider rounded-lg">
+              <p className="text-text-secondary mb-4">请输入要搜索的商品名称、品牌或描述</p>
+              <p className="text-sm text-text-tertiary">例如：“耳机”“咖啡机”“苹果手机”</p>
+            </div>
+          ) : products.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-text-secondary mb-4">未找到相关商品</p>
               <Link to="/" className="text-brand hover:underline">返回首页</Link>

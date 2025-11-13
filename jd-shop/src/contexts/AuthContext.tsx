@@ -1,22 +1,9 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 import type { UserRole } from '@/lib/supabase'
 import { loginSchema, registerSchema, getValidationErrors } from '@/lib/validation'
-
-interface AuthContextType {
-  user: User | null
-  userRole: UserRole | null
-  loading: boolean
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
-  signOut: () => Promise<void>
-  refreshUserRole: () => Promise<void>
-  setUserRoleManually: (roleData: UserRole | null) => void
-  setManualLoginMode: (mode: boolean) => void
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+import { AuthContext } from './auth-context'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -229,12 +216,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
 }

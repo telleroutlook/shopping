@@ -4,7 +4,7 @@ import { Trash2 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase, CartItem, Product } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
 
 interface CartItemWithProduct extends CartItem {

@@ -5,7 +5,7 @@ import Footer from '@/components/Footer'
 import { useCheckRole } from '@/hooks/usePermission'
 import { superAdminUsersApi } from '@/lib/api'
 import { ROLES } from '@/hooks/usePermission'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/hooks/useAuth'
 
 interface UserProfile {
   id: string
