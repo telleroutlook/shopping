@@ -3,18 +3,17 @@ import type { Product, Role, RoleHistory } from './supabase'
 
 // 从环境变量获取 Supabase URL
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'your_supabase_url_here'
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your_supabase_anon_key_here'
 
 // 获取授权header
 async function getAuthHeaders() {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('未登录')
   
-  const { data: { public: { anonKey } } } = await supabase.auth.getConfig()
-  
   return {
     'Authorization': `Bearer ${session.access_token}`,
     'Content-Type': 'application/json',
-    'apikey': anonKey
+    'apikey': SUPABASE_ANON_KEY
   }
 }
 
