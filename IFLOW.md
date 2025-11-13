@@ -1,395 +1,73 @@
-# IFLOW.md - 京东风格电商网站项目指南
+# IFLOW · JD Shop 项目协作指引（2025-11-13）
 
-## 项目概述
+IFLOW 旨在让多位 Agent/开发者在本仓库协同时保持一致。本文与 `AGENTS.md`、根级 README、`jd-shop/README.md`、`docs/role-permission-implementation-progress.md` 同步更新。
 
-这是一个基于京东分析设计的完整电商购物网站，采用现代化技术栈构建，提供无广告的纯净购物体验和三级权限管理系统。
+## 1. 核心原则
+1. **工作目录**：前端代码改动集中在 `jd-shop/`；共享 UI 在 `src/components/ui`，页面在 `src/pages`，跨页面状态在 `src/contexts`，领域 hooks 在 `src/hooks`，Supabase/Stripe glue 在 `src/lib`。遵守 `AGENTS.md` 中的模块划分。
+2. **文档优先**：任何结构或流程变化须同步 `README.md`、`docs/content-structure-plan.md`、`docs/role-permission-implementation-progress.md` 等关键文件。
+3. **Tailwind + 语义 Token**：遵循 `text-text-primary`、`bg-background-surface` 等语义类名，避免直接写死颜色，确保与设计系统对齐。
+4. **权限敏感**：涉及 `src/lib/supabase.ts`、`supabase/functions/*` 的改动需要同时通知前端与平台负责人，并更新权限文档。
 
-**项目类型**: 演示级全栈电商平台  
-**技术架构**: React + TypeScript + Tailwind CSS + Supabase  
-**核心特色**: 无广告设计、完整购物流程、三级权限管理、响应式设计
+## 2. 仓库结构与职责
+| 路径 | 负责人/用途 | 说明 |
+| --- | --- | --- |
+| `jd-shop/` | 前端 | React 18 + Vite + Tailwind。所有 UI/逻辑修改必须在此目录执行 `pnpm lint`、`pnpm build`。 |
+| `docs/` | 设计 & 架构 | 保留设计规范、内容规划、权限设计、UI/UX 评审，禁止冗余测试报告。 |
+| `supabase/` | 平台 | 生产 Edge Functions、SQL 迁移、策略。部署前需确保 `.env` 中提供 `SUPABASE_URL` 与 `SUPABASE_SERVICE_ROLE_KEY`。 |
+| `tests/` | QA | 黑盒脚本与生成的 Markdown 报告，输出放在 `tests/reports/`。 |
+| 其他根级文档 | 共享 | `环境变量配置指南.md` 描述变量策略；`setup_super_admin.sql` 初始化权限数据。 |
 
----
+## 3. 环境与命令
+所有命令在 `jd-shop/` 执行：
+- `pnpm install-deps`：安装依赖（被其他脚本自动调用）。
+- `pnpm dev`：本地开发。
+- `pnpm build` / `pnpm build:prod`：构建与类型检查。
+- `pnpm lint`：ESLint + react-hooks 规则。
+- `pnpm preview`：本地预览 `dist/`。
+- `pnpm clean`：清除 node_modules 与 pnpm store，定位缓存异常。
 
-## 🚀 项目信息
-
-**当前部署URL**: https://xpak1yu0vzmo.space.minimaxi.com  
-**项目位置**: `/home/dev/github/shopping/jd-shop/`  
-**主要文档**: `/home/dev/github/shopping/` 根目录下的各种报告和文档
-
----
-
-## 📁 项目结构
-
-```
-/home/dev/github/shopping/
-├── jd-shop/                    # 主项目目录
-│   ├── src/
-│   │   ├── components/         # 可复用组件
-│   │   │   ├── ui/            # 基础UI组件
-│   │   │   ├── Layout/        # 布局组件
-│   │   │   ├── Product/       # 商品相关组件
-│   │   │   └── Cart/          # 购物车组件
-│   │   ├── pages/             # 页面组件
-│   │   │   ├── Home.tsx       # 首页
-│   │   │   ├── ProductDetail.tsx # 商品详情页
-│   │   │   ├── CartPage.tsx   # 购物车页
-│   │   │   ├── Checkout.tsx   # 结算页
-│   │   │   ├── Account/       # 账户相关页面
-│   │   │   ├── Admin/         # 管理员页面
-│   │   │   └── SuperAdmin/    # 超级管理员页面
-│   │   ├── contexts/          # React Context
-│   │   ├── hooks/             # 自定义Hooks
-│   │   ├── lib/               # 工具库
-│   │   └── types/             # TypeScript类型定义
-│   ├── public/                # 静态资源
-│   ├── supabase/             # Supabase配置
-│   │   ├── functions/        # Edge Functions
-│   │   ├── migrations/       # 数据库迁移
-│   │   └── tables/          # 表结构定义
-│   └── package.json          # 项目配置
-├── docs/                     # 项目文档
-├── supabase/                # Supabase配置
-└── 测试报告和文档文件
-```
-
----
-
-## 🛠️ 技术栈
-
-### 前端技术
-- **React 18.3** - 现代化前端框架
-- **TypeScript 5.6** - 类型安全的JavaScript超集
-- **Tailwind CSS 3.4** - 实用优先的CSS框架
-- **React Router 7** - 客户端路由管理
-- **Vite 6.2** - 快速构建工具
-- **Radix UI** - 高质量UI组件库
-- **Lucide React** - 现代化图标库
-
-### 后端服务
-- **Supabase** - 开源Firebase替代方案
-  - **PostgreSQL** - 关系型数据库
-  - **Auth** - 用户认证服务
-  - **Storage** - 文件存储服务
-  - **Edge Functions** - 服务端API
-  - **Row Level Security** - 数据安全策略
-
----
-
-## ⚡ 快速开始
-
-### 环境要求
-- Node.js 18+
-- pnpm 8+ (推荐) 或 npm/yarn
-
-### 开发命令
+测试脚本示例：
 ```bash
-# 进入项目目录
-cd jd-shop
-
-# 安装依赖
-pnpm install
-
-# 启动开发服务器
-pnpm dev
-
-# 构建生产版本
-pnpm build
-
-# 构建生产版本（优化版）
-pnpm build:prod
-
-# 代码检查
-pnpm lint
-
-# 预览构建结果
-pnpm preview
+./tests/scripts/run-all-tests.sh admin
+./tests/scripts/test-shopping-flow.sh
 ```
-
-### 环境变量配置
-在 `jd-shop/` 目录下创建 `.env.local` 文件：
-```env
-VITE_SUPABASE_URL=https://ojbbeonzbanvepugeoso.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
-```
-
----
-
-## 👥 测试账户
-
-项目提供三种角色的完整测试账户：
-
-### 普通用户
-- **邮箱**: `jwdexcwf@minimax.com`
-- **密码**: `dOV8oYqzll`
-- **权限**: 浏览商品、加购物车、下单支付、查看订单、管理地址
-
-### 管理员
-- **邮箱**: `qwzbngcq@minimax.com`
-- **密码**: `JNIvPndCNu`
-- **权限**: 普通用户权限 + 管理商品、库存管理
-
-### 超级管理员
-- **邮箱**: `isexdomo@minimax.com`
-- **密码**: `d74Q7MHBvU`
-- **权限**: 管理员权限 + 管理用户角色、指定管理员
-
-### 测试支付信息
-- **卡号**: `4242 4242 4242 4242`
-- **有效期**: `12/25`
-- **CVV**: `123`
-- **持卡人**: 任意英文名
-
----
-
-## 🎯 功能模块
-
-### 核心功能
-- ✅ **商品浏览** - 首页展示、分类导航、搜索功能
-- ✅ **购物车管理** - 添加商品、修改数量、删除商品
-- ✅ **用户认证** - 注册、登录、权限验证
-- ✅ **地址管理** - 添加、编辑、删除收货地址
-- ✅ **订单系统** - 创建订单、模拟支付、订单状态跟踪
-- ✅ **响应式设计** - 桌面端、平板、移动端适配
-
-### 权限管理
-- 👤 **普通用户**: 基础购物功能
-- 🛠️ **管理员**: 商品管理和库存管理
-- 👑 **超级管理员**: 用户管理和角色分配
-
----
-
-## 📊 数据库结构
-
-项目使用10张核心数据表：
-
-| 表名 | 用途 |
-|------|------|
-| profiles | 用户资料表（含角色信息） |
-| addresses | 收货地址表 |
-| categories | 商品分类表 |
-| products | 商品信息表 |
-| product_images | 商品图片表 |
-| cart_items | 购物车表 |
-| orders | 订单主表 |
-| order_items | 订单明细表 |
-| reviews | 商品评价表 |
-| coupons | 优惠券表 |
-
----
-
-## 🔧 核心实现
-
-### 购物车实时更新
-使用自定义事件系统实现跨组件通信：
-```typescript
-// lib/events.ts
-class CartEventEmitter {
-  emit(eventName: string) {
-    window.dispatchEvent(new CustomEvent(eventName))
-  }
-  on(eventName: string, handler: () => void) {
-    window.addEventListener(eventName, handler)
-  }
-  off(eventName: string, handler: () => void) {
-    window.removeEventListener(eventName, handler)
-  }
-}
-export const cartEvents = new CartEventEmitter()
-```
-
-### 模拟支付流程
-```typescript
-const simulatePayment = async (): Promise<boolean> => {
-  const delay = 2000 + Math.random() * 1000
-  await new Promise(resolve => setTimeout(resolve, delay))
-  return Math.random() < 0.9 // 90%成功率
-}
-```
-
-### 权限验证
-```typescript
-const checkPermission = (requiredRole: number): boolean => {
-  return userRole >= requiredRole
-}
-```
-
----
-
-## 🧪 测试与调试
-
-### 最新测试报告
-- **测试进度**: `test-progress.md` - 2025-11-12测试结果
-- **BUG修复**: `BUGFIX_REPORT.md` - 修复记录总结
-- **功能测试**: `电商网站测试报告.md` - 完整功能验证
-- **权限测试**: `super_admin_user_management_test_report.md` - 权限系统测试
-
-### 当前状态
-- ✅ **登录认证**: 全部功能正常
-- ✅ **商品管理**: 增删改查完整
-- ✅ **权限系统**: 三级权限正确实现
-- ✅ **响应式设计**: 布局适配良好
-- ✅ **支付流程**: 模拟支付正常工作
-
----
-
-## 📁 重要文件说明
-
-### 核心代码文件
-- `jd-shop/src/App.tsx` - 主应用组件和路由配置
-- `jd-shop/src/contexts/AuthContext.tsx` - 用户认证上下文
-- `jd-shop/src/contexts/CartContext.tsx` - 购物车状态管理
-- `jd-shop/src/lib/supabase.ts` - Supabase客户端配置
-- `jd-shop/src/lib/events.ts` - 事件系统实现
-
-### 关键页面
-- `jd-shop/src/pages/Home.tsx` - 首页和商品展示
-- `jd-shop/src/pages/Checkout.tsx` - 订单结算和支付
-- `jd-shop/src/pages/AdminProductsPage.tsx` - 商品管理页面
-- `jd-shop/src/pages/SuperAdminUsersPage.tsx` - 用户管理页面
-
-### Supabase函数
-- `supabase/functions/admin-products/index.ts` - 管理员商品API
-- `supabase/functions/super-admin-users/index.ts` - 超级管理员用户API
-- `supabase/functions/user-role/index.ts` - 用户角色查询API
-
-### 配置与构建
-- `jd-shop/package.json` - 项目依赖和脚本配置
-- `jd-shop/vite.config.ts` - Vite构建配置
-- `jd-shop/tailwind.config.js` - Tailwind CSS配置
-
----
-
-## 🎨 设计特色
-
-### 视觉设计
-- **风格定位**: E-commerce Optimized（电商转化优化型）
-- **色彩方案**: 黑色主题 + 橙色强调，21:1对比度（WCAG AAA级）
-- **设计理念**: 去广告化、聚焦购物、快速响应
-
-### 用户体验
-- 移除所有弹窗、横幅、浮层广告
-- 简化流程，减少干扰
-- 紧凑布局，提高浏览效率
-- 实时反馈，即时状态更新
-
----
-
-## 🔒 安全特性
-
-### 认证与授权
-- ✅ JWT令牌认证（Supabase Auth）
-- ✅ 受保护路由拦截
-- ✅ 会话过期自动跳转登录
-
-### 数据安全
-- ✅ Row Level Security (RLS) 策略
-- ✅ SQL注入防护（参数化查询）
-- ✅ XSS防护（React自动转义）
-
----
-
-## 🚀 部署信息
-
-### 当前状态
-- **生产环境**: https://xpak1yu0vzmo.space.minimaxi.com
-- **测试环境**: https://dohxpk9me0c0.space.minimaxi.com
-- **版本**: v1.0.0
-- **最后更新**: 2025-11-12
-
-### 部署方式
-使用Vite构建并部署到静态托管服务：
-```bash
-pnpm build:prod
-# 将dist目录部署到服务器
-```
-
----
-
-## 📚 文档资源
-
-### 技术文档
-- `PROJECT_DELIVERY.md` - 完整项目交付文档
-- `PROJECT_DOCUMENTATION_REPORT.md` - 项目文档报告
-- `README.md` - 项目基本介绍和使用指南
-
-### 测试报告
-- `登录认证功能测试报告.md` - 认证系统测试
-- `电商网站测试报告.md` - 完整功能测试
-- `admin_products_test_report.md` - 商品管理测试
-- `super_admin_user_management_test_report.md` - 超级管理员测试
-- `responsive_layout_test_report.md` - 响应式设计测试
-
-### 修复记录
-- `BUGFIX_REPORT.md` - 问题修复总结
-- `test-progress.md` - 最新测试进度
-- `password_change_test_report.md` - 密码功能测试
-
----
-
-## 🎯 核心功能演示路径
-
-### 完整购物流程（5分钟）
-1. 访问网站首页
-2. 使用测试账号登录
-3. 浏览商品，加入购物车
-4. 进入结算，完成模拟支付
-5. 查看订单详情
-
-### 管理员功能体验
-1. 使用管理员账号登录
-2. 访问商品管理页面
-3. 创建、编辑、删除商品
-4. 管理库存信息
-
-### 超级管理员功能体验
-1. 使用超级管理员账号登录
-2. 访问用户管理页面
-3. 查看所有用户信息
-4. 修改用户角色权限
-
----
-
-## ⚠️ 已知限制
-
-### 功能限制
-- **模拟支付**: 不处理真实支付，仅用于演示
-- **无库存扣减**: 下单不会实际扣减库存
-- **无物流跟踪**: 订单状态为静态展示
-
-### 技术限制
-- **单体JS包**: 约620KB（gzip后130KB）
-- **无CDN加速**: 图片直接从Supabase加载
-- **纯客户端渲染**: 无服务端渲染
-
----
-
-## 🤝 开发建议
-
-### 短期优化
-- 考虑添加移动端适配测试
-- 优化加载状态的用户反馈
-- 完善错误处理机制
-
-### 长期扩展
-- 集成真实支付系统（Stripe/PayPal）
-- 实现库存管理系统
-- 添加订单状态自动流转
-- 集成物流接口
-- 实现商品推荐算法
-- 优化性能（代码分割、图片CDN）
-
----
-
-## 📞 技术支持
-
-如需技术支持或项目指导，请参考：
-- **项目代码**: `/home/dev/github/shopping/jd-shop/`
-- **技术文档**: `/home/dev/github/shopping/docs/`
-- **测试报告**: `/home/dev/github/shopping/` 根目录下的各种报告文件
-
----
-
-**项目亮点**: 完整功能闭环、三级权限管理、现代化技术栈、企业级架构、优秀用户体验、安全设计、完善测试
-
-**最后更新**: 2025-11-12  
-**项目状态**: ✅ 生产就绪，所有功能正常
+执行后在 `tests/reports/` 生成时间戳报告，务必手动勾选通过/失败条目。
+
+## 4. 环境变量与密钥
+- React/Vite 端仅使用 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`（见 `.env.example` 与《环境变量配置指南》）。
+- Edge Function / CLI 在 `supabase/.env` 或部署控制台中设置 `SUPABASE_SERVICE_ROLE_KEY`、`STRIPE_SECRET_KEY` 等高权限变量。
+- **禁止** 将服务密钥写入提交的文件或控制台输出。
+
+## 5. 迭代流程
+1. **需求拆解**：在 Issue/任务中引用对应文档章节（如内容规划、权限设计）。
+2. **实现阶段**：
+   - 在 `jd-shop/` 内创建/修改组件；需要全局状态时优先考虑 Context + hooks。
+   - Supabase schema 变更 → 更新 `supabase/migrations/` 并同步 README/文档。
+3. **自测**：
+   - UI 变动 → 截图附在 PR 描述中。
+   - 权限相关 → 逐一使用普通用户/管理员/超级管理员账号验证。
+   - 运行相关测试脚本或列出“未运行原因”。
+4. **提交信息**：使用 `<type>[:emoji] 动词短语`，例如 `docs: refresh flow guide`、`feat: add admin stock widget`。
+5. **PR 清单**：问题背景、主要修改、执行过的命令、测试结果、可视化证据、是否触及 Supabase/环境。
+
+## 6. 角色与账号
+参见根 README “测试账号”章节，保持以下惯例：
+- 普通用户：用于购物流程自测。
+- 管理员：验证 `/admin/products` 全套 CRUD 与库存。
+- 超级管理员：验证 `/super-admin/users` 的角色切换与历史列表。
+若引入新角色，需同步更新：`docs/role-permission-system-design.md`、`docs/role-permission-implementation-progress.md`、`src/hooks/usePermission.ts`、`tests/scripts/*`。
+
+## 7. 文档与知识同步
+- **必读**：`AGENTS.md`（架构准则）、根 README、`jd-shop/README.md`、`docs/content-structure-plan.md`、`docs/role-permission-implementation-progress.md`。
+- **附加**：`docs/ui-ux-analysis.md`（设计评审）、`docs/design-specification.md`（token 与组件规范）。
+- 更新任一核心文档后，需在 PR 描述中注明“Docs updated: ...”。
+
+## 8. 常见问题排查
+| 症状 | 处理 |
+| --- | --- |
+| 登录后无权限 | 检查 `AuthContext` 日志、确认 `profiles.role_id` 是否正确，必要时调用 `refreshUserRole()`。 |
+| Edge Function 503 | 使用直接数据库查询兜底（如现有 `AuthContext`），同时检查 Supabase 平台状态。 |
+| 样式失效 | 确认 Tailwind safelist 和语义 token 是否存在；执行 `pnpm dev --force` 清缓存。 |
+| 构建失败 | 确认 `pnpm install-deps` 是否成功、`tsconfig` 项目引用是否同步。 |
+
+保持 IFLOW、README 与代码一致是每次迭代的交付要求，如发现文档滞后，请在同一次 PR 中修复并引用本指引。EOF
