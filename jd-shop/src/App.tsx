@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { Toaster } from 'sonner'
 import HomePage from './pages/HomePage'
 import CategoryPage from './pages/CategoryPage'
 import SearchPage from './pages/SearchPage'
@@ -19,6 +20,7 @@ function App() {
     <BrowserRouter>
       <ErrorBoundary>
         <AuthProvider>
+          <Toaster richColors position="bottom-right" expandOnHover />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/category/:id" element={<CategoryPage />} />

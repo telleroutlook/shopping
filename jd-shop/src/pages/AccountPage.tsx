@@ -47,6 +47,7 @@ export default function AccountPage() {
     
     try {
       if (activeTab === 'orders') {
+        setOrders([])
         const { data } = await supabase
           .from('orders')
           .select('*')
@@ -55,6 +56,7 @@ export default function AccountPage() {
           .limit(10)
         if (data) setOrders(data)
       } else if (activeTab === 'addresses') {
+        setAddresses([])
         const { data } = await supabase
           .from('addresses')
           .select('*')
@@ -62,6 +64,7 @@ export default function AccountPage() {
           .order('is_default', { ascending: false })
         if (data) setAddresses(data)
       } else if (activeTab === 'favorites') {
+        setFavorites([])
         const { data, error } = await supabase
           .from('favorites')
           .select(`

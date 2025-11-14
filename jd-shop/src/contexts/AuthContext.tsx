@@ -12,28 +12,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const manualLoginModeRef = useRef(false)
   
   const setManualLoginMode = (mode: boolean) => {
-    console.log('[AuthContext] 设置手动登录模式:', mode)
     manualLoginModeRef.current = mode
   }
 
-  // 监控userRole变化
-  useEffect(() => {
-    console.log('[AuthContext] userRole changed:', userRole)
-  }, [userRole])
-
-  // 监控loading变化
-  useEffect(() => {
-    console.log('[AuthContext] loading changed:', loading)
-  }, [loading])
-
   const setUserRoleManually = (roleData: UserRole | null) => {
-    console.log('[AuthContext] 手动设置userRole:', roleData)
     setUserRole(roleData)
   }
 
   const loadUserRole = useCallback(async (currentUser: User) => {
-    console.log('[AuthContext] loadUserRole被调用，开始加载角色信息')
-    console.log('[AuthContext] 用户邮箱:', currentUser.email)
+    // 开始加载角色信息
     
     try {
       // 直接从数据库查询用户角色（绕过Edge Function）
@@ -61,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: (profiles.roles as any).created_at || new Date().toISOString()
           }
         }
-        console.log('[AuthContext] 角色加载成功:', roleData.role.name)
         setUserRole(roleData)
       } else {
         console.error('[AuthContext] 未找到用户角色数据')
@@ -109,7 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // 如果处于手动登录模式，跳过自动角色加载
         if (manualLoginModeRef.current) {
-          console.log('[AuthContext] 处于手动登录模式，跳过自动角色加载')
           setLoading(false)
           return
         }
@@ -203,13 +188,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({ user, userRole, loading, signIn, signUp, signOut, refreshUserRole, setUserRoleManually, setManualLoginMode }),
     [user, userRole, loading, refreshUserRole]
   )
-
-  console.log('[AuthContext] Provider value更新:', {
-    hasUser: !!user,
-    hasUserRole: !!userRole,
-    userRoleName: userRole?.role?.name,
-    loading
-  })
 
   return (
     <AuthContext.Provider value={value}>

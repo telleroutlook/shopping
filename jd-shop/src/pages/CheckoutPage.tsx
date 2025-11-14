@@ -31,6 +31,7 @@ export default function CheckoutPage() {
 
   const loadData = useCallback(async () => {
     if (!user) return
+    setLoading(true)
 
     try {
       // 加载购物车
@@ -57,6 +58,8 @@ export default function CheckoutPage() {
           }
         })
         setCartItems(itemsWithProducts)
+      } else {
+        setCartItems([])
       }
 
       // 加载地址
@@ -69,6 +72,9 @@ export default function CheckoutPage() {
       if (addressesData && addressesData.length > 0) {
         setAddresses(addressesData)
         setSelectedAddress(addressesData[0])
+      } else {
+        setAddresses([])
+        setSelectedAddress(null)
       }
     } catch (error) {
       console.error('Error loading data:', error)

@@ -19,47 +19,40 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    const shouldUseManualMode = isLogin
+
+    if (shouldUseManualMode) {
+      setManualLoginMode(true)
+    }
 
     try {
       if (isLogin) {
-        // 启用手动登录模式，防止auth state change干扰
-        console.log('🔒 [LoginPage] 启用手动登录模式')
-        setManualLoginMode(true)
-        
-        console.log('📝 [LoginPage] 步骤0：开始登录流程...')
         await signIn(email, password)
-        console.log('[LoginPage] 步骤1：登录API调用成功')
-        
-        // 获取当前用户
+
         const { data: { user: currentUser } } = await supabase.auth.getUser()
         if (!currentUser) {
           setError('登录成功但无法获取用户信息')
           return
         }
-        
-        console.log('[LoginPage] 步骤2：开始从数据库查询用户角色...')
-        
-        // 直接从数据库查询用户角色
+
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, email, full_name, role_id, roles(id, name, description)')
           .eq('id', currentUser.id)
           .single()
-        
+
         if (profileError) {
-          console.error('[LoginPage] 数据库查询失败:', profileError)
+          console.error('登录后角色查询失败:', profileError)
           setError('获取用户角色失败，请重试')
           return
         }
-        
+
         if (!profile || !profile.roles) {
-          console.error('[LoginPage] 未找到用户角色数据')
+          console.error('未找到用户角色数据')
           setError('未找到用户角色信息')
           return
         }
-        
-        console.log('[LoginPage] 步骤3：角色查询成功')
-        
+
         const roleData: UserRole = {
           user_id: profile.id,
           email: profile.email,
@@ -71,29 +64,13 @@ export default function LoginPage() {
             created_at: (profile.roles as any).created_at || new Date().toISOString()
           }
         }
-        
-        console.log('[LoginPage] 角色详情 - ID:', roleData.role.id, '名称:', roleData.role.name)
-        
+
         setUserRoleManually(roleData)
-        
-        console.log('[LoginPage] 步骤4：角色设置成功')
-        
-        // 根据用户角色决定跳转目标
+
+        // 角色决定跳转路径
         const targetPath = roleData.role.id === 3 ? '/super-admin/users' : '/'
-        console.log('[LoginPage] 步骤5：准备导航到对应页面:', targetPath)
-        
-        // 添加延迟确保状态更新
-        await new Promise(resolve => setTimeout(resolve, 300))
-        
-        console.log('[LoginPage] 延迟结束，开始导航')
-        
-        // 禁用手动登录模式
-        console.log('[LoginPage] 禁用手动登录模式')
-        setManualLoginMode(false)
-        
+        await new Promise((resolve) => setTimeout(resolve, 300))
         navigate(targetPath)
-        
-        console.log('[LoginPage] navigate 调用完成，登录流程结束')
       } else {
         await signUp(email, password)
         setError('注册成功！请检查邮箱并验证后登录。')
@@ -102,6 +79,9 @@ export default function LoginPage() {
       console.error('登录/注册错误:', err)
       setError(err.message || '操作失败，请重试')
     } finally {
+      if (shouldUseManualMode) {
+        setManualLoginMode(false)
+      }
       setLoading(false)
     }
   }

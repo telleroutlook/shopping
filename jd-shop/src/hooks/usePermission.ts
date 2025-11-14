@@ -37,23 +37,14 @@ export function useRequireRole(requiredRoleId: number, redirectTo: string = '/')
   const hasPermission = userRole?.role?.id && userRole.role.id >= requiredRoleId
 
   useEffect(() => {
-    console.log('[useRequireRole] 状态检查:', {
-      user: user?.email,
-      userRole: userRole?.role?.name,
-      hasPermission,
-      loading
-    })
-    
     if (!loading) {
       if (!user) {
-        console.log('[useRequireRole] 未登录，跳转到登录页')
         navigate('/login')
       } else if (!hasPermission) {
-        console.log('[useRequireRole] 权限不足，跳转到:', redirectTo)
         navigate(redirectTo)
       }
     }
-  }, [user, userRole, loading, hasPermission, requiredRoleId, redirectTo, navigate])
+  }, [user, loading, hasPermission, redirectTo, navigate])
 
   return { 
     loading, 
@@ -77,11 +68,7 @@ export function useCheckRole(requiredRoleId: number) {
   
   const hasPermission = userRole?.role?.id && userRole.role.id >= requiredRoleId
   
-  console.log('[useCheckRole] 检查权限:', {
-    requiredRoleId,
-    currentRoleId: userRole?.role?.id,
-    hasPermission
-  })
+  // 权限信息在外部使用时可直接读取
   
   return {
     hasPermission,

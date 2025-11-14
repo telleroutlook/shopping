@@ -29,25 +29,15 @@ export default function SuperAdminUsersPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [history, setHistory] = useState<any[]>([])
 
-  // 调试日志
-  console.log('SuperAdminUsersPage - 权限状态:', {
-    user: user?.email,
-    authLoading,
-    hasPermission
-  })
-
   useEffect(() => {
     if (!authLoading && hasPermission) {
-      console.log('权限检查通过，加载用户列表')
       loadUsers()
     } else if (!authLoading && !hasPermission) {
-      console.log('权限检查失败，结束加载')
       setLoading(false)
     }
   }, [authLoading, hasPermission])
 
   const handleRetryPermission = async () => {
-    console.log('手动重试权限检查')
     await refreshUserRole()
   }
 

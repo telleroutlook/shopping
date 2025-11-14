@@ -13,14 +13,6 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('')
   const [cartCount, setCartCount] = useState(0)
 
-  // 调试日志
-  useEffect(() => {
-    console.log('[Header] user:', user?.email)
-    console.log('[Header] userRole:', userRole)
-    console.log('[Header] isAdminOrHigher:', isAdminOrHigher)
-    console.log('[Header] isSuperAdmin:', isSuperAdmin)
-  }, [user, userRole, isAdminOrHigher, isSuperAdmin])
-
   const loadCartCount = useCallback(async () => {
     if (!user) return
     const { data, error } = await supabase

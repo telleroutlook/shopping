@@ -18,8 +18,13 @@ export default function CartPage() {
   const [loading, setLoading] = useState(true)
 
   const loadCart = useCallback(async () => {
-    if (!user) return
+    if (!user) {
+      setCartItems([])
+      setLoading(false)
+      return
+    }
 
+    setLoading(true)
     try {
       const { data, error } = await supabase
         .from('cart_items')
@@ -28,29 +33,32 @@ export default function CartPage() {
 
       if (error) throw error
 
-      if (data && data.length > 0) {
-        // 获取商品信息
-        const productIds = data.map(item => item.product_id)
-        const { data: products } = await supabase
-          .from('products')
-          .select('*')
-          .in('id', productIds)
-
-        const itemsWithProducts = data.map(item => {
-          const product = products?.find(p => p.id === item.product_id)
-          if (!product) {
-            throw new Error(`Product with ID ${item.product_id} not found`)
-          }
-          return {
-            ...item,
-            product
-          }
-        })
-
-        setCartItems(itemsWithProducts)
+      if (!data || data.length === 0) {
+        setCartItems([])
+        return
       }
+
+      const productIds = data.map(item => item.product_id)
+      const { data: products } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', productIds)
+
+      const itemsWithProducts = data.map(item => {
+        const product = products?.find(p => p.id === item.product_id)
+        if (!product) {
+          throw new Error(`Product with ID ${item.product_id} not found`)
+        }
+        return {
+          ...item,
+          product
+        }
+      })
+
+      setCartItems(itemsWithProducts)
     } catch (error) {
       console.error('Error loading cart:', error)
+      setCartItems([])
     } finally {
       setLoading(false)
     }
