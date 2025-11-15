@@ -26,6 +26,12 @@
 | `/login` | `pages/LoginPage.tsx` | 登录/注册切换、密码可见切换。 |
 | `/admin/products` | `pages/AdminProductsPage.tsx` | 商品 CRUD、库存调整、Zod 表单验证。 |
 | `/super-admin/users` | `pages/SuperAdminUsersPage.tsx` | 用户列表、角色变更、角色历史、权限重载。 |
+| `/super-admin/roles` | `pages/RoleManagementPage.tsx` | 当前角色与权限设置的后台展示（可扩展）。 |
+| `*` | `pages/NotFoundPage.tsx` | 404/兜底页。 |
+
+### 2.1 统一页面容器（PageShell + Header）
+- 所有路由组件都被 `jd-shop/src/components/PageShell.tsx` 包裹，负责插入粘性 `Header`/`Footer`、`bg-background-primary` 背景以及一致的 `px-4 py-10` 主区，使加载/空态/错误提示横跨路由。
+- `Header`（`jd-shop/src/components/Header.tsx`）的搜索表单维持同样的视觉/语义样式：隐藏 `label` + 按钮带来屏幕阅读器可访问性，输入框、图标与徽章在每条路由中保持一致，便于键盘导航与辅助设备。
 
 ## 3. 内容模块与要点
 ### 3.1 用户购物主线

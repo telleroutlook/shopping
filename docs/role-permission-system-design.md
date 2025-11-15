@@ -1,246 +1,59 @@
 # 用户角色权限管理系统设计文档
 
-## 系统概述
+## 1. 设计目标
+本系统围绕三种角色（普通用户/管理员/超级管理员）展开，目标是：
+1. 让普通用户只操作自己的购物数据、订单与地址；
+2. 让管理员在遵循 RLS 策略的前提下管理 `products`、`orders` 和 `cart_items`；
+3. 让超级管理员能调整用户角色、读取历史记录，并保持对 `roles` 与 `user_role_history` 的可见性。
 
-实现三级用户权限管理：普通用户、管理员、超级管理员
+## 2. 数据模型
+### 2.1 `roles`
+- 所在文件：`supabase/migrations/1762869752_add_role_system.sql`（以及后续迁移中的重复语义）。
+- 栏位：`id`（SERIAL PK）、`name`（user/admin/super_admin）、`description`、`created_at`。
+- 角色表用于和 Profile 形成 FK，所有超级管理员或管理员操作都直接校验该表。
 
-## 数据库设计
+### 2.2 `profiles`
+- 通过迁移 `1762869752_add_role_system.sql`/`1762882807_add_role_system.sql` 增加了 `role_id INTEGER`，默认 `1`（普通用户）。
+- 所有 `AuthContext` 的角色读取都在此表中完成，`user-role` Edge Function 也会对缺失 `role_id` 的账户写入默认值以保持后向兼容。
 
-### 1. roles 表（角色定义表）
-```sql
-CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    description TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+### 2.3 `user_role_history`
+- 也是通过上述迁移创建，记录 `user_id`、`old_role_id`、`new_role_id`、`changed_by`、`reason` 与 `changed_at`。
+- `super-admin-users` Edge Function 在角色切换后会写入历史，便于审计与前端展示。
 
--- 初始数据
-INSERT INTO roles (name, description) VALUES
-    ('user', '普通用户：只能购物'),
-    ('admin', '管理员：可以管理商品'),
-    ('super_admin', '超级管理员：可以管理用户和指定管理员');
-```
+## 3. RLS 策略（与迁移文件保持同步）
+### 3.1 `profiles`
+- 只允许当前用户读取/更新自己的资料；插入限制为 `auth.uid() = id`。
+- 超级管理员可读取全部 Profile，并单独允许更新任何用户的 `role_id`（见 `supabase/migrations/1762882808_role_system_rls_policies.sql`）。
+- 更新策略禁止普通用户自己提升角色，保持只能写入原有 `role_id`。
 
-### 2. 扩展 profiles 表（添加角色字段）
-```sql
-ALTER TABLE profiles 
-ADD COLUMN role_id INTEGER DEFAULT 1 REFERENCES roles(id);
+### 3.2 `products`
+- `is_active = true` 的商品对所有访客可见，且在登录后（`auth.uid()` 不为空）仍可查询历史商品。
+- 插入/更新/删除操作仅允许 `role_id IN (2, 3)`（管理员/超级管理员）。
 
--- 为现有用户设置默认角色
-UPDATE profiles SET role_id = 1 WHERE role_id IS NULL;
-```
+### 3.3 `user_role_history`
+- 仅超级管理员可查询或写入记录，其他角色无法触达任何历史数据。
 
-### 3. user_role_history 表（角色变更历史，可选）
-```sql
-CREATE TABLE user_role_history (
-    id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    old_role_id INTEGER REFERENCES roles(id),
-    new_role_id INTEGER REFERENCES roles(id),
-    changed_by UUID REFERENCES auth.users(id),
-    changed_at TIMESTAMPTZ DEFAULT NOW(),
-    reason TEXT
-);
-```
+### 3.4 `roles`
+- 所有已登录用户可查询角色列表，用于渲染前端 Badge 与筛选（如超级管理员页面展示完整角色名）。
 
-## 权限矩阵
+## 4. Edge Functions 与共享中间件
+- `supabase/functions/_shared/auth-middleware.ts` 提供 `verifyAuthAndPermissions()`、`withAuthAndPermissions()` 等工具，所有高权限函数都复用它来验证 JWT、读取 Profile、对照 `role_id` 和记录日志。
+- `admin-products`（`supabase/functions/admin-products/index.ts`）：统一处理商品 CRUD、库存更新，接口接受 `action` 参数，只有管理员/超级管理员可调用。
+- `super-admin-users`：负责 `list_users`、`set_role`（禁止自我改角色、禁止通过 API 升级为超级管理员）与 `role_history`，并在成功写入 `user_role_history`。
+- `user-password`：校验旧密码并更新 Supabase Auth（通过 `SUPABASE_SERVICE_ROLE_KEY` 执行），并结合 `sonner` 前端提示。
+- `user-role`：当前用户角色查询接口，若 Profile 没有 `role_id` 会自动补齐并返回，包括关联的 `roles` 数据。
+- `create-admin-user` & `create-base-tables` 等脚本函数保留作初始化/调试用途，和根目录 `run_migrations.js` 连动，便于在 staging 或新部署时触发。
 
-### 普通用户权限 (role_id = 1)
-- 浏览商品
-- 搜索商品
-- 查看商品详情
-- 添加商品到购物车
-- 管理购物车
-- 下单支付
-- 查看自己的订单
-- 管理收货地址
-- 修改自己的密码
+## 5. 前端集成
+- `src/contexts/AuthContext.tsx` 直接从 `profiles` 拉取 `role_id`（而不是每次请求 Edge Function），并在 `refreshUserRole()` 中重新加载，避免因 Edge Function 503 造成角色信息不同步。
+- `src/hooks/usePermission.ts` 根据 `role_id` 封装 `useRequireRole` / `useRequireAdmin` / `useRequireSuperAdmin`，在路由表（`src/App.tsx`）中的管理员/超级管理员路径使用这些 hook 做守卫。
+- `Header` 和 `PageShell` 通过 `cartEvents` 与 `supabase/lib/events.ts` 持续监听 `cart:updated`，确保徽章与侧边栏在角色切换后仍旧可见（管理员/超级管理员仍可访问）。
 
-### 管理员权限 (role_id = 2)
-包含普通用户所有权限，额外增加：
-- 发布新商品
-- 编辑商品信息
-- 删除商品
-- 管理商品库存
-- 查看所有订单
-- 修改订单状态
+## 6. 初始化与运维建议
+- 使用 `supabase/migrations/*.sql` 管理 schema，推荐依次运行 `run_migrations.js`（或 Supabase CLI）确保 `roles`、`user_role_history`、RLS 策略等按顺序生效。
+- `supabase/migrations/1762869978_setup_test_super_admin.sql` 提供了一个可切换的超级管理员账号（可在新环境或 CI 中多次运行）。
+- 每次权限相关改动之后，执行 `tests/scripts/test-admin-user.sh` 与 `test-superadmin-user.sh`，并将结果报告存入 `tests/reports/`；必要时可扩展脚本做 `Edge Function` 响应断言。
 
-### 超级管理员权限 (role_id = 3)
-包含管理员所有权限，额外增加：
-- 查看所有用户信息
-- 指定用户为管理员
-- 解除用户的管理员权限
-- 查看角色变更历史
-
-## API端点设计
-
-### 1. 权限验证中间件
-**Edge Function**: `check-permission`
-- 输入：JWT token, required_role
-- 输出：用户信息 + 权限验证结果
-
-### 2. 商品管理API
-**Edge Function**: `admin-products`
-- POST /admin-products/create - 创建商品
-- PUT /admin-products/update - 更新商品
-- DELETE /admin-products/delete - 删除商品
-- PUT /admin-products/stock - 更新库存
-
-### 3. 用户管理API
-**Edge Function**: `super-admin-users`
-- GET /super-admin-users/list - 获取所有用户
-- POST /super-admin-users/set-role - 设置用户角色
-- GET /super-admin-users/role-history - 查看角色变更历史
-
-### 4. 密码管理API
-**Edge Function**: `user-password`
-- POST /user-password/change - 修改密码
-
-### 5. 角色查询API
-**Edge Function**: `user-role`
-- GET /user-role/info - 获取当前用户角色信息
-
-## RLS策略设计
-
-### profiles表RLS
-```sql
--- 所有用户可以读取自己的profile
-CREATE POLICY "Users can view own profile"
-ON profiles FOR SELECT
-USING (auth.uid() = id);
-
--- 所有用户可以更新自己的profile（除了role_id）
-CREATE POLICY "Users can update own profile"
-ON profiles FOR UPDATE
-USING (auth.uid() = id);
-
--- 超级管理员可以查看所有profiles
-CREATE POLICY "Super admin can view all profiles"
-ON profiles FOR SELECT
-USING (
-    EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = auth.uid() AND role_id = 3
-    )
-);
-
--- 超级管理员可以更新role_id
-CREATE POLICY "Super admin can update user roles"
-ON profiles FOR UPDATE
-USING (
-    EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = auth.uid() AND role_id = 3
-    )
-);
-```
-
-### products表RLS
-```sql
--- 所有人可以读取激活的商品
-CREATE POLICY "Anyone can view active products"
-ON products FOR SELECT
-USING (is_active = true);
-
--- 管理员可以创建商品
-CREATE POLICY "Admins can create products"
-ON products FOR INSERT
-WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = auth.uid() AND role_id IN (2, 3)
-    )
-);
-
--- 管理员可以更新商品
-CREATE POLICY "Admins can update products"
-ON products FOR UPDATE
-USING (
-    EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = auth.uid() AND role_id IN (2, 3)
-    )
-);
-
--- 管理员可以删除商品
-CREATE POLICY "Admins can delete products"
-ON products FOR DELETE
-USING (
-    EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = auth.uid() AND role_id IN (2, 3)
-    )
-);
-```
-
-## 超级管理员配置
-
-超级管理员通过数据库直接配置，在初始化时创建：
-
-```sql
--- 假设超级管理员邮箱为 superadmin@example.com
-UPDATE profiles 
-SET role_id = 3 
-WHERE email = 'superadmin@example.com';
-```
-
-## 前端页面设计
-
-### 1. 管理员商品管理页面 (/admin/products)
-- 商品列表（带搜索、筛选）
-- 添加商品表单
-- 编辑商品表单
-- 删除商品确认
-- 库存管理
-
-### 2. 超级管理员用户管理页面 (/super-admin/users)
-- 用户列表（显示邮箱、角色、注册时间）
-- 角色设置操作
-- 角色变更历史查看
-
-### 3. 用户设置页面增强 (/account/settings)
-- 原有个人信息编辑
-- 新增：密码修改功能
-
-## 权限控制流程
-
-1. 用户登录后，从profiles表获取role_id
-2. 前端根据role_id显示/隐藏功能
-3. 后端API通过Edge Function验证权限
-4. 数据库RLS提供最后一层安全保障
-
-## 实施状态（2025-11-12 更新）
-
-### 第一阶段：数据库和后端（✅ 已完成）
-1. ✅ 创建roles表
-2. ✅ 扩展profiles表添加role_id字段
-3. ✅ 设置RLS策略
-4. ✅ 实现4个Edge Functions：
-   - user-role：获取用户角色信息
-   - admin-products：管理员商品管理API
-   - super-admin-users：超级管理员用户管理API
-   - user-password：用户密码修改API
-
-### 第二阶段：前端界面（🔄 部分完成）
-1. ✅ 权限管理相关hooks和utils
-2. ✅ 基于角色的路由守卫
-3. ✅ 管理员商品管理页面（AdminProductsPage.tsx）
-4. ✅ 超级管理员用户管理页面（SuperAdminUsersPage.tsx）
-5. ✅ 登录页面权限控制集成
-6. 🔄 密码修改功能集成（API完成，前端待完善）
-7. 🔄 角色状态管理优化（AuthContext部分问题）
-
-### 已知问题和修复计划
-1. **角色状态更新问题**：AuthContext的loadUserRole函数需要完善
-2. **数据验证日志缺失**：需要添加完整的数据结构验证日志
-3. **用户角色显示**：Header中userRole显示异常
-
-## 安全考虑
-
-1. ✅ 密码修改需要验证旧密码
-2. ✅ 角色变更需要记录历史（user_role_history表）
-3. ✅ 所有管理操作通过Edge Functions验证权限
-4. ✅ Edge Functions使用SERVICE_ROLE_KEY操作敏感数据
-5. ✅ RLS策略提供数据库级保护
-6. ✅ 前端路由守卫 + 后端权限验证双重保护
+## 7. 注意事项
+- 角色枚举仍集中在 `supabase/functions/_shared/auth-middleware.ts` + `src/hooks/usePermission.ts` 中，如果后续增加新角色（客服、运营），请同步更新两处常量。
+- 所有 Edge Function 均通过 `SUPABASE_SERVICE_ROLE_KEY` 操作敏感数据，请务必在部署平台（Vercel/Cloudflare）中使用机密变量。
