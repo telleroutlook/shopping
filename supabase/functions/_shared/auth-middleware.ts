@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { getCorsHeaders, respondToCorsPreflight } from './cors.ts'
 
 export interface AuthenticatedUser {
   id: string
@@ -197,16 +198,10 @@ export function withAuthAndPermissions(
     const originalMethod = descriptor.value
     
     descriptor.value = async function (req: Request, ...args: any[]) {
-      const corsHeaders = {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE, PATCH',
-        'Access-Control-Max-Age': '86400',
-      }
-      
-      // 预检请求
-      if (req.method === 'OPTIONS') {
-        return new Response(null, { status: 200, headers: corsHeaders })
+      const corsHeaders = getCorsHeaders(req)
+      const preflight = respondToCorsPreflight(req)
+      if (preflight) {
+        return preflight
       }
       
       try {

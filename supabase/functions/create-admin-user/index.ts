@@ -1,17 +1,10 @@
-Deno.serve(async (req) => {
-    const corsHeaders = {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-application-name, x-request-id, x-user-agent, x-forwarded-for',
-        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE, PATCH',
-        'Access-Control-Max-Age': '86400',
-        'Access-Control-Allow-Credentials': 'false'
-    };
+import { getCorsHeaders, respondToCorsPreflight } from '../_shared/cors.ts'
 
-    if (req.method === 'OPTIONS') {
-        return new Response(null, {
-            status: 200,
-            headers: corsHeaders
-        });
+Deno.serve(async (req) => {
+    const corsHeaders = getCorsHeaders(req)
+    const preflight = respondToCorsPreflight(req)
+    if (preflight) {
+        return preflight
     }
   
     try {
@@ -133,7 +126,7 @@ Deno.serve(async (req) => {
       });
   
     } catch (error) {
-      logger.error('Function error:', error);
+      console.error('Function error:', error);
       return new Response(JSON.stringify({
         error: { code: 'FUNCTION_ERROR', message: error.message }
       }), {

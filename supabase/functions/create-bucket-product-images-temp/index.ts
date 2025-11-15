@@ -1,13 +1,10 @@
+import { getCorsHeaders, respondToCorsPreflight } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
-    const corsHeaders = {
-    'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE',
-    };
-
-    if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    const corsHeaders = getCorsHeaders(req)
+    const preflight = respondToCorsPreflight(req)
+    if (preflight) {
+        return preflight
     }
 
     try {

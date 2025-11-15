@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAuthAndPermissions, PERMISSIONS, createSupabaseClient } from '../_shared/auth-middleware.ts'
 import { withRateLimit } from '../_shared/rate-limit-middleware.ts'
+import { getCorsHeaders } from '../_shared/cors.ts'
 
 // 应用速率限制，然后是权限验证
 Deno.serve(
@@ -9,43 +10,45 @@ Deno.serve(
     'manage_products',
     'products'
   )(async (req: Request, user: any) => {
-  try {
-    const { action, productData } = await req.json()
-    const supabase = createSupabaseClient()
+    const corsHeaders = getCorsHeaders(req)
 
-    switch (action) {
-      case 'create':
-        return await createProduct(supabase, productData, user)
-      case 'update':
-        return await updateProduct(supabase, productData, user)
-      case 'delete':
-        return await deleteProduct(supabase, productData, user)
-      case 'update_stock':
-        return await updateStock(supabase, productData, user)
-      default:
-        throw new Error('无效的操作类型')
-    }
-  } catch (error: any) {
-    return new Response(
-      JSON.stringify({
-        error: {
-          code: 'ADMIN_PRODUCT_ERROR',
-          message: error.message
-        }
-      }),
-      {
-        status: error.message.includes('权限不足') ? 403 : 400,
-        headers: {
-          'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
-          'Content-Type': 'application/json'
-        }
+    try {
+      const { action, productData } = await req.json()
+      const supabase = createSupabaseClient()
+
+      switch (action) {
+        case 'create':
+          return await createProduct(supabase, productData, user, corsHeaders)
+        case 'update':
+          return await updateProduct(supabase, productData, user, corsHeaders)
+        case 'delete':
+          return await deleteProduct(supabase, productData, user, corsHeaders)
+        case 'update_stock':
+          return await updateStock(supabase, productData, user, corsHeaders)
+        default:
+          throw new Error('无效的操作类型')
       }
-    )
-  }
-  ))
+    } catch (error: any) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'ADMIN_PRODUCT_ERROR',
+            message: error.message
+          }
+        }),
+        {
+          status: error.message.includes('权限不足') ? 403 : 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+    }
+  }))
 )
 
-async function createProduct(supabase: any, productData: any, user: any) {
+async function createProduct(supabase: any, productData: any, user: any, corsHeaders: Record<string, string>) {
   const { data, error } = await supabase
     .from('products')
     .insert({
@@ -73,14 +76,14 @@ async function createProduct(supabase: any, productData: any, user: any) {
     { 
       status: 200, 
       headers: {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
+        ...corsHeaders,
         'Content-Type': 'application/json'
       }
     }
   )
 }
 
-async function updateProduct(supabase: any, productData: any, user: any) {
+async function updateProduct(supabase: any, productData: any, user: any, corsHeaders: Record<string, string>) {
   const { id, ...updateFields } = productData
   
   const { data, error } = await supabase
@@ -103,14 +106,14 @@ async function updateProduct(supabase: any, productData: any, user: any) {
     { 
       status: 200, 
       headers: {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
+        ...corsHeaders,
         'Content-Type': 'application/json'
       }
     }
   )
 }
 
-async function deleteProduct(supabase: any, productData: any, user: any) {
+async function deleteProduct(supabase: any, productData: any, user: any, corsHeaders: Record<string, string>) {
   const { error } = await supabase
     .from('products')
     .delete()
@@ -125,14 +128,14 @@ async function deleteProduct(supabase: any, productData: any, user: any) {
     { 
       status: 200, 
       headers: {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
+        ...corsHeaders,
         'Content-Type': 'application/json'
       }
     }
   )
 }
 
-async function updateStock(supabase: any, productData: any, user: any) {
+async function updateStock(supabase: any, productData: any, user: any, corsHeaders: Record<string, string>) {
   const { data, error } = await supabase
     .from('products')
     .update({
@@ -153,7 +156,7 @@ async function updateStock(supabase: any, productData: any, user: any) {
     { 
       status: 200, 
       headers: {
-        'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
+        ...corsHeaders,
         'Content-Type': 'application/json'
       }
     }

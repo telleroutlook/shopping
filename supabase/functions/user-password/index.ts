@@ -1,12 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withRateLimit } from '../_shared/rate-limit-middleware.ts'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://xpak1yu0vzmo.space.minimaxi.com',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-}
+import { getCorsHeaders, respondToCorsPreflight } from '../_shared/cors.ts'
 
 // 密码复杂度验证函数
 function validatePasswordComplexity(password: string, email?: string): { isValid: boolean; errors: string[] } {
@@ -126,11 +120,15 @@ function logPasswordChange(userEmail: string, action: string, success: boolean, 
 Deno.serve(
   withRateLimit('password')(
     async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 200, headers: corsHeaders })
-  }
+      const corsHeaders = getCorsHeaders(req)
+      const preflight = respondToCorsPreflight(req)
+      if (preflight) {
+        return preflight
+      }
 
-  try {
+      let userEmail = 'unknown'
+
+      try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       throw new Error('未提供授权令牌')
@@ -140,6 +138,9 @@ Deno.serve(
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
+      throw new Error('Supabase配置不完整，无法执行操作')
+    }
     // 使用service role key创建客户端用于更新密码
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -150,6 +151,8 @@ Deno.serve(
     if (authError || !user) {
       throw new Error('无效的授权令牌')
     }
+
+    userEmail = user.email
 
     const { current_password, new_password } = await req.json()
 
@@ -212,14 +215,14 @@ Deno.serve(
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
-  } catch (error: any) {
+      } catch (error: any) {
     const status = error.message.includes('当前密码不正确') ? 401 :
                    error.message.includes('不符合安全要求') ? 400 :
                    error.message.includes('不能使用') ? 400 : 500
     
     console.error('密码变更失败:', {
       error: error.message,
-      user: user?.email || 'unknown',
+      user: userEmail,
       timestamp: new Date().toISOString()
     })
     
