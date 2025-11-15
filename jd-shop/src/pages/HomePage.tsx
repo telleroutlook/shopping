@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { ShieldCheck, Sparkles, Truck } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import ProductCard from '@/components/ProductCard'
+import RatingStars from '@/components/RatingStars'
 import { supabase, Product, Category } from '@/lib/supabase'
+
+const heroHighlights = [
+  { icon: Truck, label: '48H 极速发货' },
+  { icon: ShieldCheck, label: '正品保障与七天退换' },
+  { icon: Sparkles, label: '优选上新 · 人气推荐' }
+]
+
+const skeletonItems = Array.from({ length: 8 })
 
 export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -18,31 +28,28 @@ export default function HomePage() {
 
   const loadData = async () => {
     try {
-      // 加载分类
-      const { data: categoriesData } = await supabase
-        .from('categories')
-        .select('*')
-        .is('parent_id', null)
-        .order('sort_order')
-        .limit(8)
+      const [{ data: categoriesData }, { data: productsData }] = await Promise.all([
+        supabase
+          .from('categories')
+          .select('*')
+          .is('parent_id', null)
+          .order('sort_order')
+          .limit(8),
+        supabase
+          .from('products')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+          .limit(20)
+      ])
 
       if (categoriesData) setCategories(categoriesData)
-
-      // 加载商品
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (productsData) {
-        // Hero产品：选择第一个
+      if (productsData && productsData.length > 0) {
         setHeroProduct(productsData[0])
-        // 热门商品：按评分排序
-        const hot = [...productsData].sort((a, b) => b.rating - a.rating).slice(0, 8)
+        const hot = [...productsData]
+          .sort((a, b) => b.rating - a.rating || b.review_count - a.review_count)
+          .slice(0, 8)
         setHotProducts(hot)
-        // 新品推荐：最新的商品
         setNewProducts(productsData.slice(1, 9))
       }
     } catch (error) {
@@ -52,28 +59,30 @@ export default function HomePage() {
     }
   }
 
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`w-4 h-4 ${
-              star <= rating ? 'fill-warning text-warning' : 'text-gray-300'
-            }`}
-          />
-        ))}
-      </div>
-    )
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-secondary">加载中...</p>
-        </div>
+        <main className="flex-1 container mx-auto space-y-10 py-12">
+          <div className="h-[320px] rounded-[32px] bg-background-surface animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {skeletonItems.map((_, index) => (
+              <div
+                key={`cat-skel-${index}`}
+                className="h-24 rounded-2xl bg-background-surface animate-pulse"
+              />
+            ))}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {skeletonItems.map((_, index) => (
+              <div
+                key={`card-skel-${index}`}
+                className="h-64 rounded-xl bg-background-surface animate-pulse"
+              />
+            ))}
+          </div>
+        </main>
+        <Footer />
       </div>
     )
   }
@@ -82,149 +91,145 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-background-primary">
       <Header />
 
-      <main className="flex-1">
-        {/* Hero区 */}
+      <main className="flex-1 space-y-10">
         {heroProduct && (
-          <section className="bg-background-surface">
-            <div className="container mx-auto py-12">
-              <div className="flex flex-col lg:flex-row items-center gap-8">
-                <div className="flex-1 lg:w-1/2">
-                  <img
-                    src={heroProduct.main_image}
-                    alt={heroProduct.name}
-                    className="w-full h-auto max-h-[500px] object-contain rounded-lg"
-                  />
-                </div>
-                <div className="flex-1 lg:w-1/2 space-y-6">
-                  <h1 className="text-4xl lg:text-5xl font-bold text-text-primary leading-tight">
+          <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
+            <div className="container mx-auto py-14">
+              <div className="flex flex-col gap-10 lg:flex-row lg:items-center">
+                <div className="flex-1 space-y-6">
+                  <p className="text-xs uppercase tracking-[0.4em] text-white/70">
+                    甄选推荐
+                  </p>
+                  <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
                     {heroProduct.name}
                   </h1>
-                  <p className="text-lg text-text-secondary">
+                  <p className="max-w-2xl text-base text-white/80">
                     {heroProduct.short_description}
                   </p>
-                  <div className="flex items-baseline space-x-4">
-                    <span className="text-price-current font-bold text-error">
-                      ¥{heroProduct.price.toFixed(2)}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <RatingStars
+                      rating={heroProduct.rating}
+                      reviewCount={heroProduct.review_count}
+                      className="!text-white"
+                    />
+                    <span className="text-sm text-white/80">
+                      {heroProduct.review_count} 条评价 · {heroProduct.rating.toFixed(1)} 分
                     </span>
-                    {heroProduct.original_price && (
-                      <span className="text-price-original text-text-tertiary line-through">
-                        ¥{heroProduct.original_price.toFixed(2)}
-                      </span>
-                    )}
                   </div>
-                  <Link
-                    to={`/product/${heroProduct.id}`}
-                    className="inline-block px-12 py-4 bg-cta-primary text-white font-semibold rounded-md hover:bg-cta-primary-hover transition-colors duration-fast"
-                  >
-                    立即查看
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Link
+                      to={`/product/${heroProduct.id}`}
+                      className="inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-100"
+                    >
+                      立即查看
+                    </Link>
+                    <div className="flex items-baseline space-x-3 text-white/90">
+                      <span className="text-3xl font-bold text-white">
+                        ¥{heroProduct.price.toFixed(2)}
+                      </span>
+                      {heroProduct.original_price && heroProduct.original_price > heroProduct.price && (
+                        <span className="text-sm line-through text-white/80">
+                          ¥{heroProduct.original_price.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {heroHighlights.map((highlight) => (
+                      <div
+                        key={highlight.label}
+                        className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white/80 backdrop-blur"
+                      >
+                        <highlight.icon className="w-4 h-4 text-white" />
+                        <span>{highlight.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="relative overflow-hidden rounded-[32px] bg-white/10 p-6 shadow-2xl ring-1 ring-white/10 backdrop-blur">
+                    <div className="absolute inset-0 pointer-events-none border border-white/10 rounded-[32px]" />
+                    <img
+                      src={heroProduct.main_image}
+                      alt={heroProduct.name}
+                      className="relative w-full h-[320px] object-contain"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </section>
         )}
 
-        {/* 分类导航 */}
-        <section className="py-8">
+        <section className="py-10">
           <div className="container mx-auto">
-            <div className="grid grid-cols-4 lg:grid-cols-8 gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
+              <h2 className="text-h2 font-semibold text-text-primary">热门分类</h2>
+              <Link to="/search" className="text-sm text-brand hover:underline">
+                查看全部分类
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {categories.map((category) => (
                 <Link
                   key={category.id}
                   to={`/category/${category.id}`}
-                  className="flex flex-col items-center p-4 bg-background-surface rounded-md hover:shadow-card transition-shadow duration-base group"
+                  className="rounded-2xl border border-background-divider bg-white/60 px-4 py-6 text-center text-sm font-semibold text-text-primary transition-all duration-base hover:border-brand hover:shadow-card-hover"
                 >
-                  <div className="w-12 h-12 mb-2 text-text-primary group-hover:text-brand transition-colors">
-                    <div className="w-full h-full bg-background-divider rounded-full flex items-center justify-center">
-                      <span className="text-xl">{category.name[0]}</span>
-                    </div>
+                  <div className="text-2xl font-bold text-brand mb-2">
+                    {category.name[0]}
                   </div>
-                  <span className="text-sm text-text-primary group-hover:text-brand transition-colors">
+                  <p className="text-xs uppercase tracking-wide text-text-tertiary">
                     {category.name}
-                  </span>
+                  </p>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 热门商品 */}
-        <section className="py-12">
-          <div className="container mx-auto">
-            <h2 className="text-h2 font-semibold text-text-primary mb-6">热门商品</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-              {hotProducts.map((product) => (
-                <Link
+        <section className="py-10 bg-background-surface">
+          <div className="container mx-auto space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-h2 font-semibold text-text-primary">热门商品</h2>
+                <p className="text-sm text-text-secondary">
+                  精选好评最高的商品，实时更新
+                </p>
+              </div>
+              <Link to="/search?q=热销" className="text-sm text-brand hover:underline">
+                查看全部热门
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {hotProducts.map((product, index) => (
+                <ProductCard
                   key={product.id}
-                  to={`/product/${product.id}`}
-                  className="bg-white border border-background-divider rounded-md overflow-hidden hover:shadow-card-hover transition-all duration-base group"
-                >
-                  <div className="aspect-square overflow-hidden bg-background-surface">
-                    <img
-                      src={product.main_image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-base"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <h3 className="text-base font-medium text-text-primary line-clamp-2 min-h-[3rem]">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      {renderStars(Math.round(product.rating))}
-                      <span className="text-sm text-text-tertiary">({product.review_count})</span>
-                    </div>
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-xl font-bold text-error">¥{product.price}</span>
-                      {product.original_price && (
-                        <span className="text-sm text-text-tertiary line-through">
-                          ¥{product.original_price}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+                  product={product}
+                  tag={index === 0 ? '热销' : undefined}
+                  className="h-full"
+                />
               ))}
             </div>
           </div>
         </section>
 
-        {/* 新品推荐 */}
-        <section className="py-12 bg-background-surface">
-          <div className="container mx-auto">
-            <h2 className="text-h2 font-semibold text-text-primary mb-6">新品推荐</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
+        <section className="py-10">
+          <div className="container mx-auto space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-h2 font-semibold text-text-primary">新品推荐</h2>
+                <p className="text-sm text-text-secondary">
+                  最新上架，为你精选的第一波新品
+                </p>
+              </div>
+              <Link to="/search?q=新品" className="text-sm text-brand hover:underline">
+                查看更多新品
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {newProducts.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/product/${product.id}`}
-                  className="bg-white border border-background-divider rounded-md overflow-hidden hover:shadow-card-hover transition-all duration-base group"
-                >
-                  <div className="aspect-square overflow-hidden bg-background-surface">
-                    <img
-                      src={product.main_image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-base"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <h3 className="text-base font-medium text-text-primary line-clamp-2 min-h-[3rem]">
-                      {product.name}
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      {renderStars(Math.round(product.rating))}
-                      <span className="text-sm text-text-tertiary">({product.review_count})</span>
-                    </div>
-                    <div className="flex items-baseline space-x-2">
-                      <span className="text-xl font-bold text-error">¥{product.price}</span>
-                      {product.original_price && (
-                        <span className="text-sm text-text-tertiary line-through">
-                          ¥{product.original_price}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+                <ProductCard key={product.id} product={product} className="h-full" />
               ))}
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Star, ShoppingCart, Heart, Check } from 'lucide-react'
+import { ShoppingCart, Heart, Check } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase, Product } from '@/lib/supabase'
@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
 import { useFavoriteStatus } from '@/hooks/useFavoriteStatus'
 import { toast } from 'sonner'
+import RatingStars from '@/components/RatingStars'
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>()
@@ -114,21 +115,6 @@ export default function ProductPage() {
     }
   }
 
-  const renderStars = (rating: number) => {
-    return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            className={`w-5 h-5 ${
-              star <= rating ? 'fill-warning text-warning' : 'text-gray-300'
-            }`}
-          />
-        ))}
-      </div>
-    )
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -193,7 +179,11 @@ export default function ProductPage() {
 
               {/* 评分 */}
               <div className="flex items-center space-x-4">
-                {renderStars(Math.round(product.rating))}
+                <RatingStars
+                  rating={product.rating}
+                  reviewCount={product.review_count}
+                  size="sm"
+                />
                 <span className="text-text-secondary">
                   {product.rating.toFixed(1)} 分
                 </span>
