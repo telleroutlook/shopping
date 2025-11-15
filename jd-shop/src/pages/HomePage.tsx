@@ -518,6 +518,54 @@ function getMockCategories(): Category[] {
       sort_order: 4,
       is_active: true,
       created_at: new Date().toISOString()
+    },
+    {
+      id: 5,
+      name: '食品饮料',
+      slug: 'food-beverage',
+      description: '食品饮料',
+      icon: 'coffee',
+      color: '#F59E0B',
+      parent_id: null,
+      sort_order: 5,
+      is_active: true,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 6,
+      name: '运动户外',
+      slug: 'sports-outdoor',
+      description: '运动户外用品',
+      icon: 'dumbbell',
+      color: '#06B6D4',
+      parent_id: null,
+      sort_order: 6,
+      is_active: true,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 7,
+      name: '家居生活',
+      slug: 'home-living',
+      description: '家居生活用品',
+      icon: 'home',
+      color: '#84CC16',
+      parent_id: null,
+      sort_order: 7,
+      is_active: true,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 8,
+      name: '母婴玩具',
+      slug: 'baby-toys',
+      description: '母婴玩具用品',
+      icon: 'baby',
+      color: '#F97316',
+      parent_id: null,
+      sort_order: 8,
+      is_active: true,
+      created_at: new Date().toISOString()
     }
   ]
 }
