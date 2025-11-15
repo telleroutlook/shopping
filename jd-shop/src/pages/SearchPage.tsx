@@ -15,6 +15,7 @@ export default function SearchPage() {
 
   const search = useCallback(async (keyword: string) => {
     try {
+      // 使用 Supabase 全文搜索功能
       const { data } = await supabase
         .from('products')
         .select('*')
