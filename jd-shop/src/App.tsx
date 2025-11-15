@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Toaster } from 'sonner'
+import { initializeBaseData } from './lib/initialize-data'
 import HomePage from './pages/HomePage'
 import CategoryPage from './pages/CategoryPage'
 import SearchPage from './pages/SearchPage'
@@ -16,6 +18,15 @@ import SuperAdminUsersPage from './pages/SuperAdminUsersPage'
 import './App.css'
 
 function App() {
+  useEffect(() => {
+    // 初始化基础数据
+    initializeBaseData().then(result => {
+      if (!result.success) {
+        console.error('Failed to initialize base data:', result.error)
+      }
+    })
+  }, [])
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
