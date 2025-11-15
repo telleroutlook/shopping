@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { CreditCard, Smartphone, Wallet, Lock, AlertCircle } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase, CartItem, Product, Address } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
@@ -221,56 +220,44 @@ export default function CheckoutPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-secondary">加载中...</p>
-        </div>
-      </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <p className="text-text-secondary">加载中...</p>
+      </PageShell>
     )
   }
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-text-secondary mb-4">购物车是空的</p>
-            <button onClick={() => navigate('/')} className="text-brand hover:underline">
-              去购物
-            </button>
-          </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <div className="text-center">
+          <p className="text-text-secondary mb-4">购物车是空的</p>
+          <button onClick={() => navigate('/')} className="text-brand hover:underline">
+            去购物
+          </button>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   if (addresses.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-text-secondary mb-4">请先添加收货地址</p>
-            <button onClick={() => navigate('/account')} className="text-brand hover:underline">
-              去添加地址
-            </button>
-          </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <div className="text-center">
+          <p className="text-text-secondary mb-4">请先添加收货地址</p>
+          <button onClick={() => navigate('/account')} className="text-brand hover:underline">
+            去添加地址
+          </button>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      <Header />
-
-      <main className="flex-1 py-8">
-        <div className="container mx-auto">
-          {!showPaymentForm ? (
-            <>
-              <h1 className="text-h1 font-bold text-text-primary mb-8">结算</h1>
+    <PageShell>
+      <div className="container mx-auto">
+        {!showPaymentForm ? (
+          <>
+            <h1 className="text-h1 font-bold text-text-primary mb-8">结算</h1>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-6">
@@ -526,9 +513,6 @@ export default function CheckoutPage() {
             </>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

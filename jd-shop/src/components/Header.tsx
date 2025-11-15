@@ -64,16 +64,30 @@ export default function Header() {
           </Link>
 
           {/* 搜索框 */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl mx-4 sm:mx-8">
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 max-w-2xl mx-4 sm:mx-8"
+            aria-label="网站全局搜索"
+          >
             <div className="relative">
+              <label htmlFor="global-search" className="sr-only">
+                搜索商品
+              </label>
               <input
                 type="text"
                 placeholder="搜索商品"
+                id="global-search"
+                name="search"
+                autoComplete="off"
+                aria-label="搜索商品"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-14 pl-12 pr-4 bg-background-surface border border-transparent rounded-full focus:border-brand focus:outline-none transition-colors text-base"
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-tertiary" />
+              <button type="submit" className="sr-only" aria-label="提交搜索">
+                搜索
+              </button>
             </div>
           </form>
 

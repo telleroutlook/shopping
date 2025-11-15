@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase, Order, OrderItem } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -107,36 +106,27 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-secondary">加载中...</p>
-        </div>
-      </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <p className="text-text-secondary">加载中...</p>
+      </PageShell>
     )
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-text-secondary mb-4">订单不存在</p>
-            <Link to="/account" className="text-brand hover:underline">返回订单列表</Link>
-          </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <div className="text-center">
+          <p className="text-text-secondary mb-4">订单不存在</p>
+          <Link to="/account" className="text-brand hover:underline">返回订单列表</Link>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      <Header />
-
-      <main className="flex-1 py-8">
-        <div className="container mx-auto">
-          <div className="mb-6 text-sm text-text-secondary">
+    <PageShell>
+      <div className="container mx-auto">
+        <div className="mb-6 text-sm text-text-secondary">
             <Link to="/" className="hover:text-brand">首页</Link>
             <span className="mx-2">/</span>
             <Link to="/account" className="hover:text-brand">我的订单</Link>
@@ -302,9 +292,6 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

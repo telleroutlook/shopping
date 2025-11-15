@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase, CartItem, Product } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
@@ -44,16 +43,23 @@ export default function CartPage() {
         .select('*')
         .in('id', productIds)
 
-      const itemsWithProducts = data.map(item => {
+      const itemsWithProducts = data.reduce<CartItemWithProduct[]>((acc, item) => {
         const product = products?.find(p => p.id === item.product_id)
         if (!product) {
-          throw new Error(`Product with ID ${item.product_id} not found`)
+          console.warn(`Product with ID ${item.product_id} not found in catalog, skipping cart item.`)
+          return acc
         }
-        return {
+        acc.push({
           ...item,
           product
-        }
-      })
+        })
+        return acc
+      }, [])
+
+      if (itemsWithProducts.length === 0) {
+        setCartItems([])
+        return
+      }
 
       setCartItems(itemsWithProducts)
     } catch (error) {
@@ -117,22 +123,16 @@ export default function CartPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-secondary">加载中...</p>
-        </div>
-      </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <p className="text-text-secondary">加载中...</p>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      <Header />
-
-      <main className="flex-1 py-8">
-        <div className="container mx-auto">
-          <h1 className="text-h1 font-bold text-text-primary mb-8">购物车</h1>
+    <PageShell>
+      <div className="container mx-auto">
+        <h1 className="text-h1 font-bold text-text-primary mb-8">购物车</h1>
 
           {cartItems.length === 0 ? (
             <div className="text-center py-16">
@@ -234,9 +234,6 @@ export default function CartPage() {
             </div>
           )}
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

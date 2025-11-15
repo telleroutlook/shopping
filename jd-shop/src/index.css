@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    --font-sans: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+    --background-primary: 255 255 255;
+    --text-primary: 17 24 39;
+    --text-secondary: 74 85 104;
     --radius: 0.5rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -24,6 +28,24 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background-color: rgb(var(--background-primary, 255 255 255));
+    color: rgb(var(--text-primary, 17 24 39));
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: inherit;
   }
 }
 

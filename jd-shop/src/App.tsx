@@ -13,8 +13,21 @@ import CheckoutPage from './pages/CheckoutPage'
 import AccountPage from './pages/AccountPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import OrdersPage from './pages/OrdersPage'
+import AddressesPage from './pages/AddressesPage'
+import FavoritesPage from './pages/FavoritesPage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
+import TermsOfServicePage from './pages/TermsOfServicePage'
+import AboutPage from './pages/AboutPage'
+import NotFoundPage from './pages/NotFoundPage'
+import OrderSuccessPage from './pages/OrderSuccessPage'
+import OrderFailedPage from './pages/OrderFailedPage'
 import AdminProductsPage from './pages/AdminProductsPage'
+import AdminOrdersPage from './pages/AdminOrdersPage'
 import SuperAdminUsersPage from './pages/SuperAdminUsersPage'
+import RoleManagementPage from './pages/RoleManagementPage'
 import './App.css'
 
 function App() {
@@ -41,9 +54,22 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/account" element={<AccountPage />} />
             <Route path="/order/:id" element={<OrderDetailPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/addresses" element={<AddressesPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+            <Route path="/order-failed" element={<OrderFailedPage />} />
             <Route path="/admin/products" element={<AdminProductsPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
             <Route path="/super-admin/users" element={<SuperAdminUsersPage />} />
+            <Route path="/super-admin/roles" element={<RoleManagementPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AuthProvider>
       </ErrorBoundary>

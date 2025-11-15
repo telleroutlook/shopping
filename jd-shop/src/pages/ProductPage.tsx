@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Heart, Check } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import { supabase, Product } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { cartEvents } from '@/lib/events'
@@ -344,35 +343,26 @@ export default function ProductPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-text-secondary">加载中...</p>
-        </div>
-      </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <p className="text-text-secondary">加载中...</p>
+      </PageShell>
     )
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-text-secondary mb-4">商品不存在</p>
-            <Link to="/" className="text-brand hover:underline">返回首页</Link>
-          </div>
+      <PageShell mainClassName="flex items-center justify-center" innerClassName="max-w-3xl">
+        <div className="text-center">
+          <p className="text-text-secondary mb-4">商品不存在</p>
+          <Link to="/" className="text-brand hover:underline">返回首页</Link>
         </div>
-      </div>
+      </PageShell>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      <Header />
-
-      <main className="flex-1">
-        <div className="container mx-auto py-8">
+    <PageShell>
+      <div className="container mx-auto py-8">
           {/* 面包屑 */}
           <div className="mb-6 text-sm text-text-secondary">
             <Link to="/" className="hover:text-brand">首页</Link>
@@ -535,9 +525,6 @@ export default function ProductPage() {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   )
 }

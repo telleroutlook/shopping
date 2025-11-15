@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, Package, Heart, MapPin, Settings, Plus, Edit2, Trash2, Check, Key } from 'lucide-react'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import PageShell from '@/components/PageShell'
 import PasswordInput from '@/components/PasswordInput'
 import { supabase, Order, Address, FavoriteItem, Product } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
@@ -298,12 +297,9 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-primary">
-      <Header />
-
-      <main className="flex-1 py-8">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <PageShell>
+      <div className="container mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* 侧边菜单 */}
             <div className="lg:col-span-1">
               <div className="bg-white border border-background-divider rounded-lg p-6">
@@ -779,9 +775,6 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </PageShell>
   )
 }
