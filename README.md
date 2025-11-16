@@ -68,6 +68,15 @@
 - 每个脚本顶部的 `BASE_URL`、账号信息可以按需要指向最新部署；执行后会在 `tests/reports/` 下生成带时间戳的 Markdown 记录，手动勾选对应项即可。
 - 对 UI、权限、流程等进行人工验证后请按 `docs/role-permission-system-design.md`、`docs/content-structure-plan.md` 的清单进行补充说明。
 
+### 可用测试账号
+| 角色 | 登录邮箱 | 密码 | 说明 |
+| --- | --- | --- | --- |
+| 普通用户（购物、订单） | `jwdexcwf@minimax.com` | `dOV8oYqzll` | 仅可访问 `/cart`、`/checkout`、`/account` 等常规用户页面，不能进入管理端。 |
+| 管理员（商品管理） | `qwzbngcq@minimax.com` | `JNIvPndCNu` | 可访问 `/admin/products`，通过 `admin-products` Edge Function 操作商品；无用户/角色管理权限。 |
+| 超级管理员（角色 & 用户） | `isexdomo@minimax.com` | `d74Q7MHBvU` | 可访问 `/super-admin/users`、`/super-admin/roles` 等高权限页面，并调用 `super-admin-users` 与 `user-role` Edge Function。 |
+
+> 登录 URL（当前测试部署）：`https://xpak1yu0vzmo.space.minimaxi.com`。在部署到新环境后，请更新上述账号对应的 `BASE_URL` 和 URL 记录，确保脚本与人工测试同步。
+
 ## 文档索引
 | 主题 | 位置 |
 | --- | --- |
