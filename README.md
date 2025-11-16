@@ -75,7 +75,7 @@
 | 管理员（商品管理） | `qwzbngcq@minimax.com` | `JNIvPndCNu` | 可访问 `/admin/products`，通过 `admin-products` Edge Function 操作商品；无用户/角色管理权限。 |
 | 超级管理员（角色 & 用户） | `isexdomo@minimax.com` | `d74Q7MHBvU` | 可访问 `/super-admin/users`、`/super-admin/roles` 等高权限页面，并调用 `super-admin-users` 与 `user-role` Edge Function。 |
 
-> 登录 URL（当前测试部署）：`https://xpak1yu0vzmo.space.minimaxi.com`。在部署到新环境后，请更新上述账号对应的 `BASE_URL` 和 URL 记录，确保脚本与人工测试同步。
+> 本地开发时登录 URL 为 `http://localhost:5173`（Vite 默认端口）。如果在远程部署环境使用这些账号，请替换为该环境的实际域名/URL，并同步更新 `BASE_URL` 配置与测试脚本。
 
 ## 文档索引
 | 主题 | 位置 |
